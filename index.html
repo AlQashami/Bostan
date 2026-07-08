@@ -207,6 +207,10 @@ input,select,textarea{font-family:inherit;font-size:14px;}
 
 .filters{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;}
 .filters select,.filters input{padding:7px 10px;border-radius:9px;border:1px solid var(--border);background:var(--surface);color:var(--ink);font-size:13px;}
+.status-quick{font-size:11.5px;font-weight:600;padding:3px 8px;border-radius:20px;background:var(--primary-tint);color:var(--primary-dark);border:none;cursor:pointer;}
+details.extra-info{margin-bottom:13px;}
+details.extra-info summary{cursor:pointer;font-size:12.5px;font-weight:600;color:var(--ink-soft);padding:6px 0;}
+details.extra-info .field{margin-top:0;}
 
 .tabs{display:flex;gap:4px;border-bottom:1px solid var(--border);margin-bottom:18px;flex-wrap:wrap;}
 .tab{padding:9px 14px;font-size:13.5px;color:var(--ink-soft);border-bottom:2px solid transparent;font-weight:600;}
@@ -367,7 +371,6 @@ const NAV = [
     {id:'projects', label:'المشاريع', icon:'project'},
   ]},
   {group:'أنا', items:[
-    {id:'identity', label:'الهوية', icon:'identity'},
     {id:'review', label:'المراجعة السنوية', icon:'review'},
   ]},
 ];
@@ -727,7 +730,7 @@ function renderGardenMap(){
 
 // ============ فهرس المكتبة ============
 function viewLibrary(){
-  const books = DB.books.filter(b=>b.owned);
+  const books = sortBooks(DB.books.filter(b=>b.owned), 'created-desc');
   return `
   <div class="page-head">
     <div class="eyebrow">المكتبة</div>
@@ -739,10 +742,25 @@ function viewLibrary(){
     <select id="f-status" onchange="filterLibrary()"><option value="">كل الحالات</option>${STATUS_OPTIONS.map(s=>`<option>${s}</option>`).join('')}</select>
     <select id="f-borrowed" onchange="filterLibrary()"><option value="">الكل</option><option value="yes">معار حاليًا</option><option value="no">غير معار</option></select>
     <input id="f-text" placeholder="بحث بالاسم أو المؤلف..." oninput="filterLibrary()">
+    <select id="f-sort" onchange="filterLibrary()">${LIBRARY_SORTS.map(s=>`<option value="${s.value}">ترتيب حسب: ${s.label}</option>`).join('')}</select>
     <button class="btn primary" style="margin-inline-start:auto" onclick="openBookForm()">${ICONS.plus} كتاب جديد</button>
   </div>
   <div id="library-table">${renderLibraryTable(books)}</div>
   `;
+}
+const LIBRARY_SORTS = [
+  {value:'created-desc', label:'تاريخ الإضافة (الأحدث أولًا)'},
+  {value:'title-asc', label:'العنوان'},
+  {value:'author-asc', label:'المؤلف'},
+  {value:'status', label:'الحالة'},
+];
+function sortBooks(books, sortBy){
+  const arr = [...books];
+  if(sortBy==='title-asc') arr.sort((a,b)=>(a.title||'').localeCompare(b.title||'','ar'));
+  else if(sortBy==='author-asc') arr.sort((a,b)=>(a.author||'').localeCompare(b.author||'','ar'));
+  else if(sortBy==='status') arr.sort((a,b)=>STATUS_OPTIONS.indexOf(a.status||STATUS_OPTIONS[0])-STATUS_OPTIONS.indexOf(b.status||STATUS_OPTIONS[0]));
+  else arr.sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+  return arr;
 }
 function renderLibraryTable(books){
   if(books.length===0){
@@ -756,23 +774,32 @@ function renderLibraryTable(books){
     <td>${escapeHtml(b.author||'—')}</td>
     <td>${b.category?`<span class="tag">${escapeHtml(b.category)}</span>`:'—'}</td>
     <td>${b.pages||'—'}</td>
-    <td><span class="badge ${b.status==='قرأته'?'':'outline'}">${b.status||'لم أبدأ بعد'}</span></td>
+    <td onclick="event.stopPropagation()"><select class="status-quick" onclick="event.stopPropagation()" onchange="quickSetStatus('${b.id}',this.value)">${STATUS_OPTIONS.map(s=>`<option value="${s}" ${(b.status||STATUS_OPTIONS[0])===s?'selected':''}>${s}</option>`).join('')}</select></td>
     <td style="color:var(--ink-faint)">${escapeHtml(b.shelf||'—')}</td>
     <td>${b.borrowed?`<span class="badge soil">معار</span>`:'—'}</td>
   </tr>`).join('')}
   </tbody></table>`;
+}
+function quickSetStatus(bookId, status){
+  const b = getBook(bookId);
+  if(!b) return;
+  b.status = status;
+  saveDB();
+  filterLibrary();
 }
 function filterLibrary(){
   const cat = document.getElementById('f-cat').value;
   const status = document.getElementById('f-status').value;
   const borrowed = document.getElementById('f-borrowed').value;
   const text = document.getElementById('f-text').value.trim().toLowerCase();
+  const sortBy = document.getElementById('f-sort').value;
   let books = DB.books.filter(b=>b.owned);
   if(cat) books = books.filter(b=>b.category===cat);
   if(status) books = books.filter(b=>b.status===status);
   if(borrowed==='yes') books = books.filter(b=>b.borrowed);
   if(borrowed==='no') books = books.filter(b=>!b.borrowed);
   if(text) books = books.filter(b=>(b.title||'').toLowerCase().includes(text) || (b.author||'').toLowerCase().includes(text));
+  books = sortBooks(books, sortBy);
   document.getElementById('library-table').innerHTML = renderLibraryTable(books);
 }
 
@@ -783,14 +810,8 @@ function openBookForm(bookId){
   openModal(`
     <div class="modal-head"><h2>${isEdit?'تعديل الكتاب':'كتاب جديد'}</h2><button class="modal-close" onclick="closeModal()">×</button></div>
     <div class="field"><label>اسم الكتاب *</label><input id="bf-title" value="${escapeHtml(b?.title||'')}"></div>
-    <div class="field-row">
-      <div class="field"><label>المؤلف</label><input id="bf-author" value="${escapeHtml(b?.author||'')}"></div>
-      <div class="field"><label>دار النشر</label><input id="bf-publisher" value="${escapeHtml(b?.publisher||'')}"></div>
-    </div>
-    <div class="field-row">
-      <div class="field"><label>التصنيف</label><input id="bf-category" value="${escapeHtml(b?.category||'')}" placeholder="مثل: تطوير ذات، رواية، فكر إسلامي..."></div>
-      <div class="field"><label>عدد الصفحات</label><input id="bf-pages" type="number" value="${b?.pages||''}"></div>
-    </div>
+    <div class="field"><label>المؤلف</label><input id="bf-author" value="${escapeHtml(b?.author||'')}"></div>
+    <div class="field"><label>التصنيف</label><input id="bf-category" value="${escapeHtml(b?.category||'')}" placeholder="مثل: تطوير ذات، رواية، فكر إسلامي..."></div>
     <div class="field-row">
       <div class="field"><label>نوع الكتاب</label><select id="bf-type">${TYPE_OPTIONS.map(t=>`<option ${b?.type===t?'selected':''}>${t}</option>`).join('')}</select></div>
       <div class="field"><label>حالة القراءة</label><select id="bf-status">${STATUS_OPTIONS.map(s=>`<option ${b?.status===s?'selected':''}>${s}</option>`).join('')}</select></div>
@@ -799,9 +820,13 @@ function openBookForm(bookId){
       <div class="field checkbox-row" style="margin-top:22px"><input type="checkbox" id="bf-owned" ${(b?.owned!==false)?'checked':''}><label>هذا الكتاب موجود في مكتبتي فعليًا</label></div>
       <div class="field checkbox-row" style="margin-top:22px"><input type="checkbox" id="bf-borrowed" ${b?.borrowed?'checked':''}><label>معار حاليًا لشخص آخر</label></div>
     </div>
-    <div class="field"><label>مكانه في المكتبة (الرف)</label><input id="bf-shelf" value="${escapeHtml(b?.shelf||'')}"></div>
-    <div class="field"><label>ملاحظات</label><textarea id="bf-notes">${escapeHtml(b?.notes||'')}</textarea></div>
-    <div class="field"><label>وسوم (افصلي بينها بفاصلة)</label><input id="bf-tags" value="${(b?.tags||[]).join('، ')}"></div>
+    <details class="extra-info">
+      <summary>معلومات إضافية (اختياري)</summary>
+      <div class="field" style="margin-top:12px"><label>عدد الصفحات</label><input id="bf-pages" type="number" value="${b?.pages||''}"></div>
+      <div class="field"><label>مكانه في المكتبة (الرف)</label><input id="bf-shelf" value="${escapeHtml(b?.shelf||'')}"></div>
+      <div class="field"><label>ملاحظات</label><textarea id="bf-notes">${escapeHtml(b?.notes||'')}</textarea></div>
+      <div class="field"><label>وسوم (افصلي بينها بفاصلة)</label><input id="bf-tags" value="${(b?.tags||[]).join('، ')}"></div>
+    </details>
     <div class="modal-actions">
       ${isEdit?`<button class="btn danger" onclick="deleteBook('${b.id}')">${ICONS.trash} حذف</button>`:''}
       <button class="btn" onclick="closeModal()">إلغاء</button>
@@ -815,7 +840,6 @@ function saveBookForm(id){
   const data = {
     title,
     author: document.getElementById('bf-author').value.trim(),
-    publisher: document.getElementById('bf-publisher').value.trim(),
     category: document.getElementById('bf-category').value.trim(),
     pages: document.getElementById('bf-pages').value,
     type: document.getElementById('bf-type').value,
@@ -969,7 +993,6 @@ function viewBook(bookId){
     {id:'apply', label:'ما سأطبّقه'},
     {id:'impact', label:'الأثر'},
     {id:'links', label:'الروابط'},
-    {id:'identity', label:'الهوية'},
   ];
   return `
   <button class="btn ghost sm" onclick="navigate('library')" style="margin-bottom:10px">${ICONS.back} المكتبة</button>
@@ -1033,8 +1056,7 @@ function bookTabInfo(b){
   <div class="grid cols-2">
     <div class="card">
       <h3>البيانات الأساسية</h3>
-      <p style="font-size:13.5px;color:var(--ink-soft)">دار النشر: ${escapeHtml(b.publisher||'—')}</p>
-      <p style="font-size:13.5px;color:var(--ink-soft)">عدد الصفحات: ${b.pages||'—'}</p>
+      ${b.pages?`<p style="font-size:13.5px;color:var(--ink-soft)">عدد الصفحات: ${b.pages}</p>`:''}
       <p style="font-size:13.5px;color:var(--ink-soft)">مكانه في المكتبة: ${escapeHtml(b.shelf||'—')}</p>
       <p style="font-size:13.5px;color:var(--ink-soft)">ملاحظات: ${escapeHtml(b.notes||'—')}</p>
       ${(b.tags&&b.tags.length)?`<div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">${b.tags.map(t=>`<span class="tag">${escapeHtml(t)}</span>`).join('')}</div>`:''}
