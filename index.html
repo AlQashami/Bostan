@@ -1,0 +1,1958 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>بستان</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Markazi+Text:wght@500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F6F2E6;
+  --surface:#FFFDF7;
+  --surface-2:#FBF6EA;
+  --ink:#23301E;
+  --ink-soft:#5B6752;
+  --ink-faint:#8D9782;
+  --primary:#4B6B3A;
+  --primary-dark:#374F2A;
+  --primary-tint:#E4EBDD;
+  --soil:#A66B3F;
+  --soil-tint:#F1E3D5;
+  --gold:#C79A2A;
+  --gold-tint:#F7EDD1;
+  --border:#E3D9C2;
+  --danger:#AE5039;
+  --shadow: 0 2px 14px rgba(35,48,30,0.07);
+  --radius: 14px;
+  --font-display:'Markazi Text', serif;
+  --font-body:'IBM Plex Sans Arabic', sans-serif;
+}
+[data-theme="dark"]{
+  --bg:#131810;
+  --surface:#1B2115;
+  --surface-2:#1F2618;
+  --ink:#EAE6D6;
+  --ink-soft:#B4BCA5;
+  --ink-faint:#77816B;
+  --primary:#84AC64;
+  --primary-dark:#9FC17F;
+  --primary-tint:#26301E;
+  --soil:#CD9058;
+  --soil-tint:#2C2419;
+  --gold:#DFBA55;
+  --gold-tint:#2E2818;
+  --border:#2B331F;
+  --shadow: 0 2px 16px rgba(0,0,0,0.35);
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:var(--font-body);
+  font-size:15px;
+  line-height:1.7;
+  min-height:100vh;
+}
+::selection{background:var(--gold-tint);color:var(--ink);}
+h1,h2,h3,h4{font-family:var(--font-display);font-weight:700;margin:0 0 6px;color:var(--ink);}
+h1{font-size:34px;}
+h2{font-size:24px;}
+h3{font-size:19px;}
+p{margin:0 0 10px;}
+a{color:inherit;text-decoration:none;}
+button{font-family:inherit;cursor:pointer;}
+input,select,textarea{font-family:inherit;font-size:14px;}
+::-webkit-scrollbar{width:9px;height:9px;}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:8px;}
+::-webkit-scrollbar-track{background:transparent;}
+
+#app{display:flex;min-height:100vh;}
+
+/* ===== Sidebar ===== */
+.sidebar{
+  width:230px;flex:none;
+  background:var(--surface);
+  border-inline-start:1px solid var(--border);
+  display:flex;flex-direction:column;
+  padding:22px 16px;
+  position:sticky;top:0;height:100vh;
+  overflow-y:auto;
+}
+.brand{display:flex;align-items:center;gap:10px;padding:0 4px 20px;}
+.brand-mark{width:34px;height:34px;flex:none;}
+.brand-name{font-family:var(--font-display);font-size:26px;font-weight:700;color:var(--primary-dark);}
+.brand-tagline{font-size:11px;color:var(--ink-faint);margin-top:-6px;}
+.nav{display:flex;flex-direction:column;gap:2px;margin-top:6px;}
+.nav-group-label{font-size:11px;color:var(--ink-faint);margin:14px 8px 6px;letter-spacing:.3px;}
+.nav-item{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 10px;border-radius:10px;
+  color:var(--ink-soft);font-size:14px;font-weight:500;
+  transition:background .15s, color .15s;
+}
+.nav-item svg{width:18px;height:18px;flex:none;opacity:.85;}
+.nav-item:hover{background:var(--primary-tint);color:var(--ink);}
+.nav-item.active{background:var(--primary);color:#fff;}
+.nav-item.active svg{opacity:1;}
+.sidebar-footer{margin-top:auto;display:flex;flex-direction:column;gap:8px;padding-top:14px;border-top:1px solid var(--border);}
+.footer-btn{
+  display:flex;align-items:center;gap:8px;
+  font-size:12.5px;color:var(--ink-soft);
+  padding:7px 8px;border-radius:8px;background:none;border:none;text-align:right;
+}
+.footer-btn:hover{background:var(--surface-2);color:var(--ink);}
+.footer-btn svg{width:15px;height:15px;}
+
+/* ===== Main ===== */
+.main{flex:1;min-width:0;display:flex;flex-direction:column;}
+.topbar{
+  display:flex;align-items:center;gap:14px;
+  padding:16px 28px;position:sticky;top:0;background:linear-gradient(var(--bg) 80%, transparent);
+  z-index:5;
+}
+.search-wrap{position:relative;flex:1;max-width:420px;}
+.search-input{
+  width:100%;padding:10px 40px 10px 14px;border-radius:12px;
+  border:1px solid var(--border);background:var(--surface);color:var(--ink);
+}
+.search-input:focus{outline:none;border-color:var(--primary);}
+.search-icon{position:absolute;inset-inline-end:12px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:var(--ink-faint);pointer-events:none;}
+.search-results{
+  position:absolute;top:calc(100% + 6px);right:0;left:0;
+  background:var(--surface);border:1px solid var(--border);border-radius:12px;
+  box-shadow:var(--shadow);max-height:360px;overflow-y:auto;z-index:20;
+}
+.search-results .sr-group{padding:6px 12px;font-size:11px;color:var(--ink-faint);}
+.search-results .sr-item{padding:9px 14px;font-size:13.5px;border-top:1px solid var(--border);}
+.search-results .sr-item:hover{background:var(--surface-2);}
+.search-results .sr-empty{padding:16px;font-size:13px;color:var(--ink-faint);text-align:center;}
+
+.add-btn{
+  margin-inline-start:auto;
+  display:flex;align-items:center;gap:6px;
+  background:var(--primary);color:#fff;border:none;
+  padding:10px 16px;border-radius:12px;font-size:14px;font-weight:600;
+  box-shadow:var(--shadow);
+}
+.add-btn:hover{background:var(--primary-dark);}
+.add-btn svg{width:16px;height:16px;}
+
+.view-root{padding:6px 28px 60px;max-width:1180px;}
+
+/* ===== Common components ===== */
+.page-head{margin-bottom:22px;}
+.page-head .eyebrow{color:var(--soil);font-size:12.5px;font-weight:600;letter-spacing:.4px;margin-bottom:2px;}
+.page-head p{color:var(--ink-soft);max-width:60ch;}
+
+.grid{display:grid;gap:14px;}
+.grid.cols-2{grid-template-columns:repeat(2,1fr);}
+.grid.cols-3{grid-template-columns:repeat(3,1fr);}
+.grid.cols-4{grid-template-columns:repeat(4,1fr);}
+@media(max-width:900px){.grid.cols-2,.grid.cols-3,.grid.cols-4{grid-template-columns:repeat(2,1fr);}}
+
+.card{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+  padding:18px;box-shadow:var(--shadow);
+}
+.stat-card .stat-num{font-family:var(--font-display);font-size:32px;font-weight:700;color:var(--primary-dark);line-height:1;}
+.stat-card .stat-label{font-size:12.5px;color:var(--ink-soft);margin-top:6px;}
+
+.btn{
+  display:inline-flex;align-items:center;gap:6px;
+  border:1px solid var(--border);background:var(--surface);color:var(--ink);
+  padding:8px 14px;border-radius:10px;font-size:13.5px;font-weight:600;
+}
+.btn:hover{background:var(--surface-2);}
+.btn.primary{background:var(--primary);border-color:var(--primary);color:#fff;}
+.btn.primary:hover{background:var(--primary-dark);}
+.btn.ghost{background:none;border-color:transparent;color:var(--ink-soft);}
+.btn.ghost:hover{background:var(--surface-2);}
+.btn.danger{color:var(--danger);border-color:var(--danger);background:none;}
+.btn.danger:hover{background:var(--danger);color:#fff;}
+.btn.sm{padding:5px 10px;font-size:12.5px;}
+.btn svg{width:14px;height:14px;}
+
+.badge{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;font-weight:600;padding:3px 9px;border-radius:20px;background:var(--primary-tint);color:var(--primary-dark);}
+.badge.soil{background:var(--soil-tint);color:var(--soil);}
+.badge.gold{background:var(--gold-tint);color:var(--gold);}
+.badge.outline{background:none;border:1px solid var(--border);color:var(--ink-soft);}
+
+.tag{font-size:11.5px;background:var(--surface-2);border:1px solid var(--border);padding:2px 9px;border-radius:20px;color:var(--ink-soft);}
+
+.field{margin-bottom:13px;display:flex;flex-direction:column;gap:5px;}
+.field label{font-size:12.5px;font-weight:600;color:var(--ink-soft);}
+.field input,.field select,.field textarea{
+  padding:9px 12px;border:1px solid var(--border);border-radius:10px;background:var(--surface);color:var(--ink);width:100%;
+}
+.field textarea{resize:vertical;min-height:70px;}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--primary);}
+.field-row{display:flex;gap:12px;}
+.field-row .field{flex:1;}
+.checkbox-row{display:flex;align-items:center;gap:8px;font-size:13.5px;color:var(--ink-soft);}
+
+.empty{
+  text-align:center;padding:48px 20px;color:var(--ink-faint);
+  border:1.5px dashed var(--border);border-radius:var(--radius);
+}
+.empty h3{color:var(--ink-soft);margin-bottom:6px;}
+.empty .btn{margin-top:14px;}
+
+.table{width:100%;border-collapse:collapse;}
+.table th{text-align:right;font-size:11.5px;color:var(--ink-faint);font-weight:600;padding:8px 12px;border-bottom:1px solid var(--border);}
+.table td{padding:12px;border-bottom:1px solid var(--border);font-size:13.5px;}
+.table tr:last-child td{border-bottom:none;}
+.table tr.clickable:hover{background:var(--surface-2);cursor:pointer;}
+
+.filters{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;}
+.filters select,.filters input{padding:7px 10px;border-radius:9px;border:1px solid var(--border);background:var(--surface);color:var(--ink);font-size:13px;}
+
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--border);margin-bottom:18px;flex-wrap:wrap;}
+.tab{padding:9px 14px;font-size:13.5px;color:var(--ink-soft);border-bottom:2px solid transparent;font-weight:600;}
+.tab.active{color:var(--primary-dark);border-color:var(--primary);}
+.tab:hover{color:var(--ink);}
+
+.list-item{
+  display:flex;justify-content:space-between;align-items:center;gap:10px;
+  padding:13px 16px;border:1px solid var(--border);border-radius:12px;background:var(--surface);margin-bottom:9px;
+}
+.list-item:hover{border-color:var(--primary);}
+.list-item .li-title{font-weight:600;font-size:14.5px;}
+.list-item .li-sub{font-size:12.5px;color:var(--ink-faint);margin-top:2px;}
+
+.modal-backdrop{
+  position:fixed;inset:0;background:rgba(20,24,15,.45);
+  display:flex;align-items:flex-start;justify-content:center;
+  padding:40px 20px;overflow-y:auto;z-index:100;
+}
+.modal{
+  background:var(--surface);border-radius:18px;padding:26px;
+  width:100%;max-width:560px;box-shadow:0 20px 60px rgba(0,0,0,.25);
+}
+.modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;}
+.modal-close{background:none;border:none;color:var(--ink-faint);font-size:20px;line-height:1;padding:4px;}
+.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px;}
+
+.quote-card{border-inline-start:3px solid var(--gold);background:var(--gold-tint);border-radius:10px;padding:14px 16px;margin-bottom:10px;}
+.quote-card .q-text{font-family:var(--font-display);font-size:18px;line-height:1.6;color:var(--ink);}
+.quote-card .q-meta{font-size:11.5px;color:var(--ink-soft);margin-top:8px;display:flex;justify-content:space-between;align-items:center;}
+
+.stars{display:flex;gap:2px;direction:ltr;justify-content:flex-end;}
+.star{width:17px;height:17px;color:var(--border);cursor:pointer;}
+.star.filled{color:var(--gold);}
+
+.timeline{border-inline-start:2px solid var(--border);padding-inline-start:18px;margin-inline-start:6px;}
+.timeline .t-month{margin-bottom:26px;position:relative;}
+.timeline .t-month::before{content:'';position:absolute;inset-inline-start:-24px;top:4px;width:9px;height:9px;border-radius:50%;background:var(--primary);}
+.timeline .t-month h4{color:var(--primary-dark);margin-bottom:8px;}
+
+.book-cover-ph{
+  width:100%;aspect-ratio:2/3;border-radius:10px;background:linear-gradient(160deg,var(--primary-tint),var(--soil-tint));
+  display:flex;align-items:center;justify-content:center;color:var(--primary-dark);font-family:var(--font-display);font-size:15px;text-align:center;padding:10px;border:1px solid var(--border);
+}
+
+.identity-trait{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 16px;border:1px solid var(--border);border-radius:12px;background:var(--surface);margin-bottom:9px;
+}
+.identity-trait .it-name{font-family:var(--font-display);font-size:19px;font-weight:600;}
+.identity-trait .it-count{font-size:12px;color:var(--ink-faint);}
+
+.review-hero{
+  background:linear-gradient(135deg,var(--primary-dark),var(--primary));
+  color:#fff;border-radius:18px;padding:30px;margin-bottom:20px;
+}
+.review-hero h1{color:#fff;}
+.review-hero p{color:rgba(255,255,255,.85);}
+
+.divider{height:1px;background:var(--border);margin:20px 0;}
+
+@media(max-width:760px){
+  .sidebar{position:fixed;z-index:50;transform:translateX(105%);transition:transform .2s;box-shadow:0 0 40px rgba(0,0,0,.2);}
+  .sidebar.open{transform:translateX(0);}
+  .view-root{padding:6px 16px 60px;}
+  .topbar{padding:14px 16px;}
+  .grid.cols-3,.grid.cols-4{grid-template-columns:repeat(2,1fr);}
+  .mobile-toggle{display:flex !important;}
+}
+.mobile-toggle{display:none;align-items:center;justify-content:center;width:38px;height:38px;border-radius:10px;border:1px solid var(--border);background:var(--surface);}
+
+/* ===== Login ===== */
+.login-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
+.login-card{width:100%;max-width:380px;background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:34px;box-shadow:var(--shadow);text-align:center;}
+.login-card .brand-mark{width:44px;height:44px;color:var(--primary);margin:0 auto 10px;}
+.login-card h1{font-size:28px;margin-bottom:4px;}
+.login-card p.sub{color:var(--ink-soft);font-size:13px;margin-bottom:20px;}
+.login-card .field{text-align:right;}
+.login-error{color:var(--danger);font-size:12.5px;margin-bottom:10px;min-height:16px;}
+.login-toggle{font-size:13px;color:var(--primary-dark);margin-top:14px;cursor:pointer;font-weight:600;}
+
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+// ============ بستان: منطق التطبيق ============
+
+// ⚠️ الصقي هنا إعدادات مشروعك في Firebase (من إعدادات المشروع > تطبيقات الويب)
+const firebaseConfig = {
+  apiKey: "AIzaSyAtzblKC7YKb4sSJU9pbrE7Yg82l9T8bBg",
+  authDomain: "bostan-2beb9.firebaseapp.com",
+  projectId: "bostan-2beb9",
+  storageBucket: "bostan-2beb9.firebasestorage.app",
+  messagingSenderId: "650930814760",
+  appId: "1:650930814760:web:378e503d2b0985daf65a1d"
+};
+const FIREBASE_ENABLED = firebaseConfig.apiKey && firebaseConfig.apiKey !== "PASTE_YOUR_API_KEY_HERE";
+
+let fbAuth = null, fbDb = null, currentUser = null;
+let authMode = 'login'; // 'login' | 'signup'
+
+if(FIREBASE_ENABLED){
+  firebase.initializeApp(firebaseConfig);
+  fbAuth = firebase.auth();
+  fbDb = firebase.firestore();
+}
+
+let DB = null;
+let currentView = 'dashboard';
+let currentParam = null;
+let searchOpen = false;
+
+const ICONS = {
+  garden: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 21V10"/><path d="M12 10c0-4 -3-7-7-7 0 4 3 7 7 7Z"/><path d="M12 10c0-4 3-7 7-7 0 4 -3 7-7 7Z"/><circle cx="12" cy="20.5" r="1.2" fill="currentColor" stroke="none"/></svg>`,
+  dashboard: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>`,
+  library: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 4h4v16H4z"/><path d="M10 4h4v16h-4z"/><path d="M15.5 4.6l4 15.4-3.9 1-4-15.4z"/></svg>`,
+  log: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 19V5a2 2 0 0 1 2-2h9l5 5v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2Z"/><path d="M9 11h6M9 15h6M9 7h3"/></svg>`,
+  idea: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.5 10.9c.5.4.8 1 .8 1.6v.5h5.4v-.5c0-.6.3-1.2.8-1.6A6 6 0 0 0 12 3Z"/></svg>`,
+  project: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>`,
+  identity: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg>`,
+  quote: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M7 8c-2 0-3.5 1.5-3.5 3.8 0 2 1.3 3.2 3 3.2.2 2.3-1 3.7-2.8 4.3M15 8c-2 0-3.5 1.5-3.5 3.8 0 2 1.3 3.2 3 3.2.2 2.3-1 3.7-2.8 4.3"/></svg>`,
+  vocab: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 5h16M4 12h10M4 19h13"/></svg>`,
+  calendar: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>`,
+  review: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3l2.6 5.6 6.1.7-4.5 4.2 1.2 6-5.4-3-5.4 3 1.2-6-4.5-4.2 6.1-.7Z"/></svg>`,
+  plus: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>`,
+  search: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>`,
+  moon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8Z"/></svg>`,
+  sun: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>`,
+  download: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3v12M7 10l5 5 5-5M4 21h16"/></svg>`,
+  upload: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 21V9M7 14l5-5 5 5M4 3h16"/></svg>`,
+  star: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3l2.6 5.6 6.1.7-4.5 4.2 1.2 6-5.4-3-5.4 3 1.2-6-4.5-4.2 6.1-.7Z"/></svg>`,
+  starOutline: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3l2.6 5.6 6.1.7-4.5 4.2 1.2 6-5.4-3-5.4 3 1.2-6-4.5-4.2 6.1-.7Z"/></svg>`,
+  back: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M15 6l-6 6 6 6"/></svg>`,
+  trash: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 7h16M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2M6 7l1 13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-13"/></svg>`,
+  edit: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>`,
+  link: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M9 15l6-6M8 12l-2 2a3.5 3.5 0 0 0 5 5l2-2M16 12l2-2a3.5 3.5 0 0 0-5-5l-2 2"/></svg>`,
+};
+
+const NAV = [
+  {group:'عام', items:[
+    {id:'dashboard', label:'لوحة التحكم', icon:'dashboard'},
+    {id:'search-view', label:'البحث', icon:'search'},
+  ]},
+  {group:'القراءة', items:[
+    {id:'library', label:'فهرس المكتبة', icon:'library'},
+    {id:'log', label:'سجل القراءة', icon:'log'},
+    {id:'calendar', label:'التقويم', icon:'calendar'},
+  ]},
+  {group:'المعرفة', items:[
+    {id:'ideas', label:'قاعدة المعرفة', icon:'idea'},
+    {id:'quotes', label:'الاقتباسات', icon:'quote'},
+    {id:'vocab', label:'المفردات', icon:'vocab'},
+    {id:'projects', label:'المشاريع', icon:'project'},
+  ]},
+  {group:'أنا', items:[
+    {id:'identity', label:'الهوية', icon:'identity'},
+    {id:'review', label:'المراجعة السنوية', icon:'review'},
+  ]},
+];
+
+const STATUS_OPTIONS = ['لم أبدأ بعد','أقرأ الآن','قرأته'];
+const MEDIUM_OPTIONS = ['ورقي','كيندل','PDF','مستعار'];
+const TYPE_OPTIONS = ['عام','رواية','تطوير ذات','ديني'];
+const DEFAULT_TRAITS = ['قارئة','منضبطة','مرتبة','متحدثة بارعة','صاحبة حدود','مفكرة'];
+
+function uid(){ return 'id' + Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+
+function defaultDB(){
+  return {
+    books:[], readings:[], ideas:[], projects:[], quotes:[], vocab:[],
+    identity: DEFAULT_TRAITS.map(name=>({id:uid(), name})),
+    identityContrib: {}, // bookId -> [traitId]
+    settings: { dark:false }
+  };
+}
+
+async function loadDB(){
+  if(FIREBASE_ENABLED && currentUser){
+    try{
+      const doc = await fbDb.collection('bustan_users').doc(currentUser.uid).get();
+      if(doc.exists && doc.data().data){ DB = JSON.parse(doc.data().data); }
+      else{ DB = defaultDB(); }
+    }catch(e){ console.error('تعذر تحميل البيانات من Firebase', e); DB = defaultDB(); }
+  } else {
+    try{
+      const res = await window.storage.get('bustan-db');
+      if(res && res.value){ DB = JSON.parse(res.value); }
+      else { DB = defaultDB(); }
+    }catch(e){ DB = defaultDB(); }
+  }
+  if(!DB.identity) DB.identity = DEFAULT_TRAITS.map(name=>({id:uid(), name}));
+  if(!DB.identityContrib) DB.identityContrib = {};
+  if(!DB.settings) DB.settings = {dark:false};
+}
+
+let saveTimer=null;
+function saveDB(){
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(async ()=>{
+    if(FIREBASE_ENABLED && currentUser){
+      try{
+        await fbDb.collection('bustan_users').doc(currentUser.uid).set({ data: JSON.stringify(DB), updatedAt: Date.now() });
+      }catch(e){ console.error('تعذر الحفظ في Firebase', e); }
+    }else{
+      try{ await window.storage.set('bustan-db', JSON.stringify(DB)); }catch(e){ console.error('تعذر الحفظ', e); }
+    }
+  }, 250);
+}
+
+function getBook(id){ return DB.books.find(b=>b.id===id); }
+function getIdea(id){ return DB.ideas.find(i=>i.id===id); }
+function getProject(id){ return DB.projects.find(p=>p.id===id); }
+function getTrait(id){ return DB.identity.find(t=>t.id===id); }
+function bookReadings(bookId){ return DB.readings.filter(r=>r.bookId===bookId); }
+function bookQuotes(bookId){ return DB.quotes.filter(q=>q.bookId===bookId); }
+function bookVocab(bookId){ return DB.vocab.filter(v=>v.bookId===bookId); }
+
+function escapeHtml(s){
+  if(s===undefined||s===null) return '';
+  return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function fmtDate(d){ if(!d) return '—'; return d; }
+
+function navigate(view, param){
+  currentView = view; currentParam = param || null;
+  closeModal();
+  render();
+  window.scrollTo(0,0);
+}
+
+// ============ الإطار العام: الشريط الجانبي + الأعلى ============
+function render(){
+  const app = document.getElementById('app');
+  app.innerHTML = `
+    ${renderSidebar()}
+    <div class="main">
+      ${renderTopbar()}
+      <div class="view-root" id="view-root"></div>
+    </div>
+  `;
+  document.getElementById('view-root').innerHTML = renderView();
+  wireGlobalEvents();
+}
+
+function renderSidebar(){
+  let html = `<aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="brand-mark">${ICONS.garden}</div>
+      <div>
+        <div class="brand-name">بستان</div>
+        <div class="brand-tagline">مكتبتك ومعرفتك في مكان واحد</div>
+      </div>
+    </div>
+    <nav class="nav">`;
+  NAV.forEach(group=>{
+    html += `<div class="nav-group-label">${group.group}</div>`;
+    group.items.forEach(it=>{
+      const active = (currentView===it.id) ? 'active' : '';
+      html += `<a class="nav-item ${active}" onclick="navigate('${it.id}')">${ICONS[it.icon]}<span>${it.label}</span></a>`;
+    });
+  });
+  html += `</nav>
+    <div class="sidebar-footer">
+      <button class="footer-btn" onclick="toggleDark()">${DB.settings.dark?ICONS.sun:ICONS.moon}<span>${DB.settings.dark?'الوضع الفاتح':'الوضع الليلي'}</span></button>
+      <button class="footer-btn" onclick="exportData()">${ICONS.download}<span>تصدير البيانات</span></button>
+      <button class="footer-btn" onclick="document.getElementById('import-input').click()">${ICONS.upload}<span>استيراد بيانات بستان (JSON)</span></button>
+      <input type="file" id="import-input" accept="application/json" style="display:none" onchange="importData(event)">
+      <button class="footer-btn" onclick="openExcelImport()">${ICONS.upload}<span>استيراد من إكسل / نديم</span></button>
+      <input type="file" id="excel-import-input" accept=".xlsx,.xls,.csv" style="display:none" onchange="handleExcelFile(event)">
+      ${FIREBASE_ENABLED?`<button class="footer-btn" onclick="logout()"><span>تسجيل الخروج${currentUser?(' — '+escapeHtml(currentUser.email)):''}</span></button>`:''}
+    </div>
+  </aside>`;
+  return html;
+}
+
+function renderTopbar(){
+  return `<header class="topbar">
+    <button class="mobile-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
+    <div class="search-wrap">
+      <input class="search-input" id="global-search" placeholder="ابحثي في الكتب، الأفكار، الاقتباسات..." oninput="onGlobalSearch(this.value)" onfocus="onGlobalSearch(this.value)">
+      <span class="search-icon">${ICONS.search}</span>
+      <div id="search-results-box"></div>
+    </div>
+    <button class="add-btn" onclick="openQuickAdd()">${ICONS.plus}<span>إضافة</span></button>
+  </header>`;
+}
+
+function wireGlobalEvents(){
+  document.addEventListener('click', function(e){
+    const box = document.getElementById('search-results-box');
+    const wrap = document.querySelector('.search-wrap');
+    if(box && wrap && !wrap.contains(e.target)){ box.innerHTML=''; }
+  }, {once:true});
+}
+
+function toggleDark(){
+  DB.settings.dark = !DB.settings.dark;
+  document.documentElement.setAttribute('data-theme', DB.settings.dark?'dark':'light');
+  saveDB(); render();
+}
+
+function exportData(){
+  const blob = new Blob([JSON.stringify(DB, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'bustan-data.json';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+function importData(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev){
+    try{
+      const data = JSON.parse(ev.target.result);
+      DB = data;
+      if(!DB.identity) DB.identity = DEFAULT_TRAITS.map(name=>({id:uid(), name}));
+      if(!DB.identityContrib) DB.identityContrib = {};
+      if(!DB.settings) DB.settings = {dark:false};
+      saveDB();
+      document.documentElement.setAttribute('data-theme', DB.settings.dark?'dark':'light');
+      render();
+    }catch(err){ alert('تعذرت قراءة الملف. تأكدي أنه ملف تصدير صحيح من بستان.'); }
+  };
+  reader.readAsText(file);
+}
+
+function openQuickAdd(){
+  openModal(`
+    <div class="modal-head"><h2>إضافة جديدة</h2><button class="modal-close" onclick="closeModal()">×</button></div>
+    <div class="grid cols-2">
+      <button class="btn" style="justify-content:flex-start;padding:16px" onclick="closeModal(); openBookForm();">${ICONS.library}<span>كتاب جديد</span></button>
+      <button class="btn" style="justify-content:flex-start;padding:16px" onclick="closeModal(); openReadingForm();">${ICONS.log}<span>قراءة جديدة في السجل</span></button>
+      <button class="btn" style="justify-content:flex-start;padding:16px" onclick="closeModal(); openIdeaForm();">${ICONS.idea}<span>فكرة جديدة</span></button>
+      <button class="btn" style="justify-content:flex-start;padding:16px" onclick="closeModal(); openQuoteForm();">${ICONS.quote}<span>اقتباس جديد</span></button>
+      <button class="btn" style="justify-content:flex-start;padding:16px" onclick="closeModal(); openVocabForm();">${ICONS.vocab}<span>مفردة جديدة</span></button>
+      <button class="btn" style="justify-content:flex-start;padding:16px" onclick="closeModal(); openProjectForm();">${ICONS.project}<span>مشروع جديد</span></button>
+    </div>
+  `);
+}
+
+// ============ نافذة عامة (Modal) ============
+function openModal(html){
+  let el = document.getElementById('modal-root');
+  if(!el){ el = document.createElement('div'); el.id='modal-root'; document.body.appendChild(el); }
+  el.innerHTML = `<div class="modal-backdrop" onclick="if(event.target===this) closeModal()"><div class="modal">${html}</div></div>`;
+}
+function closeModal(){
+  const el = document.getElementById('modal-root');
+  if(el) el.innerHTML='';
+}
+
+// ============ توزيع العروض ============
+function renderView(){
+  switch(currentView){
+    case 'dashboard': return viewDashboard();
+    case 'library': return viewLibrary();
+    case 'log': return viewLog();
+    case 'book': return viewBook(currentParam);
+    case 'ideas': return viewIdeas();
+    case 'idea': return viewIdea(currentParam);
+    case 'projects': return viewProjects();
+    case 'project': return viewProject(currentParam);
+    case 'identity': return viewIdentity();
+    case 'trait': return viewTrait(currentParam);
+    case 'quotes': return viewQuotes();
+    case 'vocab': return viewVocab();
+    case 'calendar': return viewCalendar();
+    case 'review': return viewReview();
+    case 'search-view': return viewSearch();
+    default: return viewDashboard();
+  }
+}
+
+// ============ لوحة التحكم ============
+function viewDashboard(){
+  const totalOwned = DB.books.filter(b=>b.owned).length;
+  const finished = DB.readings.filter(r=>r.endDate);
+  const finishedBookIds = [...new Set(finished.map(r=>r.bookId))];
+  const totalRead = finishedBookIds.length;
+  const totalPages = finishedBookIds.reduce((sum,id)=>{ const b=getBook(id); return sum + (b && b.pages ? Number(b.pages) : 0); },0);
+
+  // توزيع حسب التصنيف
+  const catCount = {};
+  finishedBookIds.forEach(id=>{ const b=getBook(id); if(b && b.category){ catCount[b.category]=(catCount[b.category]||0)+1; } });
+  const catList = Object.entries(catCount).sort((a,b)=>b[1]-a[1]).slice(0,6);
+
+  // أكثر المؤلفين
+  const authorCount = {};
+  finishedBookIds.forEach(id=>{ const b=getBook(id); if(b && b.author){ authorCount[b.author]=(authorCount[b.author]||0)+1; } });
+  const topAuthors = Object.entries(authorCount).sort((a,b)=>b[1]-a[1]).slice(0,5);
+
+  // أكثر الأفكار تكرارًا (حسب الروابط)
+  const ideaCount = {};
+  DB.books.forEach(b=>{ (b.links?.ideas||[]).forEach(iid=>{ ideaCount[iid]=(ideaCount[iid]||0)+1; }); });
+  const topIdeas = Object.entries(ideaCount).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([iid,c])=>({idea:getIdea(iid), count:c})).filter(x=>x.idea);
+
+  // أكثر الكلمات الجديدة (الأحدث)
+  const recentVocab = [...DB.vocab].sort((a,b)=> (b.createdAt||0)-(a.createdAt||0)).slice(0,5);
+
+  // أكثر الاقتباسات المحفوظة (الأحدث)
+  const recentQuotes = [...DB.quotes].sort((a,b)=> (b.createdAt||0)-(a.createdAt||0)).slice(0,3);
+
+  // عدد الكتب لكل سنة
+  const yearCount = {};
+  finished.forEach(r=>{ const y = (r.endDate||'').slice(0,4); if(y) yearCount[y]=(yearCount[y]||0)+1; });
+  const years = Object.entries(yearCount).sort((a,b)=>a[0].localeCompare(b[0]));
+
+  // معدل القراءة الشهري (السنة الحالية)
+  const curYear = String(new Date().getFullYear());
+  const monthCount = Array(12).fill(0);
+  finished.filter(r=>(r.endDate||'').slice(0,4)===curYear).forEach(r=>{ const m = Number((r.endDate||'').slice(5,7))-1; if(m>=0) monthCount[m]++; });
+
+  return `
+  <div class="page-head">
+    <div class="eyebrow">بستان</div>
+    <h1>أهلًا بكِ في بستانك</h1>
+    <p>هذه لمحة سريعة عمّا زرعتِه من كتب وأفكار حتى الآن.</p>
+  </div>
+
+  <div class="grid cols-4" style="margin-bottom:18px">
+    <div class="card stat-card"><div class="stat-num">${totalRead}</div><div class="stat-label">كتاب مقروء</div></div>
+    <div class="card stat-card"><div class="stat-num">${totalOwned}</div><div class="stat-label">كتاب في المكتبة</div></div>
+    <div class="card stat-card"><div class="stat-num">${totalPages.toLocaleString('ar')}</div><div class="stat-label">صفحة مقروءة</div></div>
+    <div class="card stat-card"><div class="stat-num">${DB.ideas.length}</div><div class="stat-label">فكرة محفوظة</div></div>
+  </div>
+
+  ${(finishedBookIds.length>0) ? `<div class="card" style="margin-bottom:18px">
+    <h3 style="margin-bottom:12px">خريطة البستان — الروابط بين الأفكار والكتب</h3>
+    ${renderGardenMap()}
+  </div>` : ''}
+
+  <div class="grid cols-2">
+    <div class="card">
+      <h3>توزيع القراءة حسب التصنيف</h3>
+      ${catList.length? catList.map(([cat,c])=>barRow(cat,c,Math.max(...catList.map(x=>x[1])))).join('') : `<p style="color:var(--ink-faint);font-size:13px">لا توجد بيانات كافية بعد.</p>`}
+    </div>
+    <div class="card">
+      <h3>أكثر المؤلفين قراءة</h3>
+      ${topAuthors.length? topAuthors.map(([a,c])=>barRow(a,c,Math.max(...topAuthors.map(x=>x[1])))).join('') : `<p style="color:var(--ink-faint);font-size:13px">لا توجد بيانات كافية بعد.</p>`}
+    </div>
+  </div>
+
+  <div class="grid cols-2" style="margin-top:14px">
+    <div class="card">
+      <h3>أكثر الأفكار تكرارًا</h3>
+      ${topIdeas.length? topIdeas.map(x=>`<div class="list-item" style="cursor:pointer" onclick="navigate('idea','${x.idea.id}')"><span class="li-title">${escapeHtml(x.idea.name)}</span><span class="badge">${x.count} كتاب</span></div>`).join('') : `<p style="color:var(--ink-faint);font-size:13px">اربطي كتبك بأفكار لتظهر هنا.</p>`}
+    </div>
+    <div class="card">
+      <h3>أحدث المفردات</h3>
+      ${recentVocab.length? recentVocab.map(v=>`<div class="list-item"><span class="li-title">${escapeHtml(v.word)}</span><span class="li-sub">${escapeHtml(v.meaning||'')}</span></div>`).join('') : `<p style="color:var(--ink-faint);font-size:13px">لم تُضاف مفردات بعد.</p>`}
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:14px">
+    <h3>معدل القراءة الشهري — ${curYear}</h3>
+    <div style="display:flex;align-items:flex-end;gap:6px;height:90px;margin-top:14px">
+      ${monthCount.map((c,i)=>`<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px">
+        <div style="width:100%;background:var(--primary);border-radius:5px 5px 0 0;height:${c? (c/Math.max(...monthCount,1))*70+6:2}px" title="${c} كتاب"></div>
+        <span style="font-size:10px;color:var(--ink-faint)">${['ي','ف','م','أ','م','ي','ي','أ','س','أ','ن','د'][i]}</span>
+      </div>`).join('')}
+    </div>
+  </div>
+
+  ${recentQuotes.length? `<div class="card" style="margin-top:14px">
+    <h3>من اقتباساتك الأخيرة</h3>
+    ${recentQuotes.map(q=>quoteCardHtml(q)).join('')}
+  </div>` : ''}
+  `;
+}
+
+function barRow(label,count,max){
+  const pct = Math.max(6, Math.round((count/max)*100));
+  return `<div style="margin-bottom:10px">
+    <div style="display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:4px"><span>${escapeHtml(label)}</span><span style="color:var(--ink-faint)">${count}</span></div>
+    <div style="height:7px;background:var(--surface-2);border-radius:6px;overflow:hidden"><div style="height:100%;width:${pct}%;background:var(--soil);border-radius:6px"></div></div>
+  </div>`;
+}
+
+function renderGardenMap(){
+  // خريطة بسيطة: جذع مركزي وفروع = الأفكار الأكثر ارتباطًا، أوراق = الكتب
+  const ideaLinks = {};
+  DB.books.forEach(b=>{ (b.links?.ideas||[]).forEach(iid=>{ (ideaLinks[iid] = ideaLinks[iid]||[]).push(b.id); }); });
+  const entries = Object.entries(ideaLinks).sort((a,b)=>b[1].length-a[1].length).slice(0,6);
+  if(entries.length===0){
+    return `<p style="color:var(--ink-faint);font-size:13px">اربطي الكتب بأفكار في قاعدة المعرفة، وستنمو خريطة بستانك هنا تدريجيًا.</p>`;
+  }
+  const W=760,H=260, cx=W/2, cyBase=H-20;
+  let svg = `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto" xmlns="http://www.w3.org/2000/svg">`;
+  svg += `<line x1="${cx}" y1="${cyBase}" x2="${cx}" y2="${cyBase-70}" stroke="var(--soil)" stroke-width="5" stroke-linecap="round"/>`;
+  const n = entries.length;
+  entries.forEach(([iid,bookIds],i)=>{
+    const idea = getIdea(iid); if(!idea) return;
+    const angle = (-70 + (140/(n-1||1))*i) * Math.PI/180;
+    const branchLen = 90;
+    const bx = cx + Math.sin(angle)*branchLen;
+    const by = (cyBase-70) - Math.cos(angle)*branchLen;
+    svg += `<line x1="${cx}" y1="${cyBase-70}" x2="${bx}" y2="${by}" stroke="var(--primary)" stroke-width="3" stroke-linecap="round"/>`;
+    svg += `<circle cx="${bx}" cy="${by}" r="${16+Math.min(bookIds.length*2,14)}" fill="var(--primary-tint)" stroke="var(--primary)" stroke-width="1.5"/>`;
+    svg += `<text x="${bx}" y="${by+4}" text-anchor="middle" font-size="10" fill="var(--primary-dark)" font-family="IBM Plex Sans Arabic">${escapeHtml(idea.name.slice(0,10))}</text>`;
+    // leaves for books
+    bookIds.slice(0,4).forEach((bid,j)=>{
+      const leafAngle = angle + (j-1.5)*0.28;
+      const lx = bx + Math.sin(leafAngle)*34;
+      const ly = by - Math.cos(leafAngle)*34;
+      svg += `<circle cx="${lx}" cy="${ly}" r="4.5" fill="var(--gold)" opacity="0.85"/>`;
+    });
+  });
+  svg += `</svg>`;
+  return svg;
+}
+
+// ============ فهرس المكتبة ============
+function viewLibrary(){
+  const books = DB.books.filter(b=>b.owned);
+  return `
+  <div class="page-head">
+    <div class="eyebrow">المكتبة</div>
+    <h1>فهرس المكتبة</h1>
+    <p>الكتب التي تملكينها فعليًا — ورقية كانت أو غيرها.</p>
+  </div>
+  <div class="filters">
+    <select id="f-cat" onchange="filterLibrary()"><option value="">كل التصنيفات</option>${[...new Set(books.map(b=>b.category).filter(Boolean))].map(c=>`<option>${escapeHtml(c)}</option>`).join('')}</select>
+    <select id="f-status" onchange="filterLibrary()"><option value="">كل الحالات</option>${STATUS_OPTIONS.map(s=>`<option>${s}</option>`).join('')}</select>
+    <select id="f-borrowed" onchange="filterLibrary()"><option value="">الكل</option><option value="yes">معار حاليًا</option><option value="no">غير معار</option></select>
+    <input id="f-text" placeholder="بحث بالاسم أو المؤلف..." oninput="filterLibrary()">
+    <button class="btn primary" style="margin-inline-start:auto" onclick="openBookForm()">${ICONS.plus} كتاب جديد</button>
+  </div>
+  <div id="library-table">${renderLibraryTable(books)}</div>
+  `;
+}
+function renderLibraryTable(books){
+  if(books.length===0){
+    return `<div class="empty"><h3>مكتبتك فارغة حتى الآن</h3><p>ابدئي بإضافة أول كتاب تملكينه.</p><button class="btn primary" onclick="openBookForm()">${ICONS.plus} إضافة كتاب</button></div>`;
+  }
+  return `<table class="table"><thead><tr>
+    <th>الكتاب</th><th>المؤلف</th><th>التصنيف</th><th>الصفحات</th><th>الحالة</th><th>المكان</th><th>معار</th>
+  </tr></thead><tbody>
+  ${books.map(b=>`<tr class="clickable" onclick="navigate('book','${b.id}')">
+    <td>${escapeHtml(b.title)}</td>
+    <td>${escapeHtml(b.author||'—')}</td>
+    <td>${b.category?`<span class="tag">${escapeHtml(b.category)}</span>`:'—'}</td>
+    <td>${b.pages||'—'}</td>
+    <td><span class="badge ${b.status==='قرأته'?'':'outline'}">${b.status||'لم أبدأ بعد'}</span></td>
+    <td style="color:var(--ink-faint)">${escapeHtml(b.shelf||'—')}</td>
+    <td>${b.borrowed?`<span class="badge soil">معار</span>`:'—'}</td>
+  </tr>`).join('')}
+  </tbody></table>`;
+}
+function filterLibrary(){
+  const cat = document.getElementById('f-cat').value;
+  const status = document.getElementById('f-status').value;
+  const borrowed = document.getElementById('f-borrowed').value;
+  const text = document.getElementById('f-text').value.trim().toLowerCase();
+  let books = DB.books.filter(b=>b.owned);
+  if(cat) books = books.filter(b=>b.category===cat);
+  if(status) books = books.filter(b=>b.status===status);
+  if(borrowed==='yes') books = books.filter(b=>b.borrowed);
+  if(borrowed==='no') books = books.filter(b=>!b.borrowed);
+  if(text) books = books.filter(b=>(b.title||'').toLowerCase().includes(text) || (b.author||'').toLowerCase().includes(text));
+  document.getElementById('library-table').innerHTML = renderLibraryTable(books);
+}
+
+// ============ نموذج إضافة/تعديل كتاب ============
+function openBookForm(bookId){
+  const b = bookId ? getBook(bookId) : null;
+  const isEdit = !!b;
+  openModal(`
+    <div class="modal-head"><h2>${isEdit?'تعديل الكتاب':'كتاب جديد'}</h2><button class="modal-close" onclick="closeModal()">×</button></div>
+    <div class="field"><label>اسم الكتاب *</label><input id="bf-title" value="${escapeHtml(b?.title||'')}"></div>
+    <div class="field-row">
+      <div class="field"><label>المؤلف</label><input id="bf-author" value="${escapeHtml(b?.author||'')}"></div>
+      <div class="field"><label>دار النشر</label><input id="bf-publisher" value="${escapeHtml(b?.publisher||'')}"></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>التصنيف</label><input id="bf-category" value="${escapeHtml(b?.category||'')}" placeholder="مثل: تطوير ذات، رواية، فكر إسلامي..."></div>
+      <div class="field"><label>عدد الصفحات</label><input id="bf-pages" type="number" value="${b?.pages||''}"></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>نوع الكتاب</label><select id="bf-type">${TYPE_OPTIONS.map(t=>`<option ${b?.type===t?'selected':''}>${t}</option>`).join('')}</select></div>
+      <div class="field"><label>حالة القراءة</label><select id="bf-status">${STATUS_OPTIONS.map(s=>`<option ${b?.status===s?'selected':''}>${s}</option>`).join('')}</select></div>
+    </div>
+    <div class="field-row">
+      <div class="field checkbox-row" style="margin-top:22px"><input type="checkbox" id="bf-owned" ${(b?.owned!==false)?'checked':''}><label>هذا الكتاب موجود في مكتبتي فعليًا</label></div>
+      <div class="field checkbox-row" style="margin-top:22px"><input type="checkbox" id="bf-borrowed" ${b?.borrowed?'checked':''}><label>معار حاليًا لشخص آخر</label></div>
+    </div>
+    <div class="field"><label>مكانه في المكتبة (الرف)</label><input id="bf-shelf" value="${escapeHtml(b?.shelf||'')}"></div>
+    <div class="field"><label>ملاحظات</label><textarea id="bf-notes">${escapeHtml(b?.notes||'')}</textarea></div>
+    <div class="field"><label>وسوم (افصلي بينها بفاصلة)</label><input id="bf-tags" value="${(b?.tags||[]).join('، ')}"></div>
+    <div class="modal-actions">
+      ${isEdit?`<button class="btn danger" onclick="deleteBook('${b.id}')">${ICONS.trash} حذف</button>`:''}
+      <button class="btn" onclick="closeModal()">إلغاء</button>
+      <button class="btn primary" onclick="saveBookForm('${b?.id||''}')">${isEdit?'حفظ التعديلات':'إضافة الكتاب'}</button>
+    </div>
+  `);
+}
+function saveBookForm(id){
+  const title = document.getElementById('bf-title').value.trim();
+  if(!title){ alert('اسم الكتاب مطلوب.'); return; }
+  const data = {
+    title,
+    author: document.getElementById('bf-author').value.trim(),
+    publisher: document.getElementById('bf-publisher').value.trim(),
+    category: document.getElementById('bf-category').value.trim(),
+    pages: document.getElementById('bf-pages').value,
+    type: document.getElementById('bf-type').value,
+    status: document.getElementById('bf-status').value,
+    owned: document.getElementById('bf-owned').checked,
+    borrowed: document.getElementById('bf-borrowed').checked,
+    shelf: document.getElementById('bf-shelf').value.trim(),
+    notes: document.getElementById('bf-notes').value.trim(),
+    tags: document.getElementById('bf-tags').value.split('،').map(t=>t.trim()).filter(Boolean),
+  };
+  let bookId = id;
+  if(id){
+    Object.assign(getBook(id), data);
+  }else{
+    bookId = uid();
+    DB.books.push(Object.assign({
+      id: bookId, createdAt: Date.now(),
+      goldenIdea:'', mainIdeas:[], summary:'', applyList:[], impact:'',
+      links:{ideas:[],books:[],authors:[],people:[],projects:[]},
+      novel:{characters:'',message:'',impression:'',styles:''},
+      religious:{benefits:'',applications:'',verses:''},
+    }, data));
+  }
+  saveDB();
+  closeModal();
+  if(currentView==='book'){ render(); } else { navigate('book', bookId); }
+}
+function deleteBook(id){
+  if(!confirm('هل تريدين حذف هذا الكتاب نهائيًا؟ سيُحذف معه سجلات القراءة والاقتباسات والمفردات المرتبطة به.')) return;
+  DB.books = DB.books.filter(b=>b.id!==id);
+  DB.readings = DB.readings.filter(r=>r.bookId!==id);
+  DB.quotes = DB.quotes.filter(q=>q.bookId!==id);
+  DB.vocab = DB.vocab.filter(v=>v.bookId!==id);
+  DB.projects.forEach(p=>{ p.bookIds = (p.bookIds||[]).filter(bid=>bid!==id); });
+  delete DB.identityContrib[id];
+  saveDB(); closeModal(); navigate('library');
+}
+
+// ============ سجل القراءة ============
+function viewLog(){
+  const entries = [...DB.readings].sort((a,b)=> (b.endDate||b.startDate||'').localeCompare(a.endDate||a.startDate||''));
+  return `
+  <div class="page-head">
+    <div class="eyebrow">سجل القراءة</div>
+    <h1>سجل القراءة</h1>
+    <p>كل كتاب قرأتِه فعليًا، بأي وسيلة كانت — بصرف النظر عن كونه مملوكًا أو مستعارًا.</p>
+  </div>
+  <div style="margin-bottom:16px"><button class="btn primary" onclick="openReadingForm()">${ICONS.plus} تسجيل قراءة جديدة</button></div>
+  ${entries.length===0? `<div class="empty"><h3>لم تُسجَّل أي قراءة بعد</h3><p>سجّلي أول كتاب قرأتِه لتبدأ رحلتك هنا.</p></div>` :
+   entries.map(r=>{
+      const b = getBook(r.bookId);
+      if(!b) return '';
+      return `<div class="list-item">
+        <div style="cursor:pointer;flex:1" onclick="navigate('book','${b.id}')">
+          <div class="li-title">${escapeHtml(b.title)} <span style="color:var(--ink-faint);font-weight:400">— ${escapeHtml(b.author||'')}</span></div>
+          <div class="li-sub">${r.startDate?('بدأت: '+r.startDate):''} ${r.endDate?(' · انتهت: '+r.endDate):' · جارية'} · ${r.medium||''} ${r.reread?' · إعادة قراءة':''}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          ${r.rating? starsHtml(r.rating,false) : ''}
+          <button class="btn sm ghost" onclick="openReadingForm('${r.id}')">${ICONS.edit}</button>
+        </div>
+      </div>`;
+   }).join('')}
+  `;
+}
+function starsHtml(rating, interactive, onClickPrefix){
+  let html = `<div class="stars">`;
+  for(let i=5;i>=1;i--){
+    if(interactive){
+      html += `<span class="star ${i<=rating?'filled':''}" onclick="${onClickPrefix}(${i})">${i<=rating?ICONS.star:ICONS.starOutline}</span>`;
+    }else{
+      html += `<span class="star ${i<=rating?'filled':''}">${i<=rating?ICONS.star:ICONS.starOutline}</span>`;
+    }
+  }
+  return html + `</div>`;
+}
+
+let tempRating = 0;
+function openReadingForm(entryId){
+  const r = entryId ? DB.readings.find(x=>x.id===entryId) : null;
+  tempRating = r?.rating || 0;
+  const bookOptions = DB.books.map(b=>`<option value="${b.id}" ${r?.bookId===b.id?'selected':''}>${escapeHtml(b.title)}</option>`).join('');
+  openModal(`
+    <div class="modal-head"><h2>${r?'تعديل القراءة':'قراءة جديدة'}</h2><button class="modal-close" onclick="closeModal()">×</button></div>
+    <div class="field"><label>الكتاب *</label>
+      <select id="rf-book">${bookOptions}</select>
+      <button class="btn sm ghost" style="margin-top:6px" onclick="closeModal(); openBookForm(); ">${ICONS.plus} كتاب غير موجود؟ أضيفيه أولًا</button>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>تاريخ البداية</label><input type="date" id="rf-start" value="${r?.startDate||''}"></div>
+      <div class="field"><label>تاريخ النهاية</label><input type="date" id="rf-end" value="${r?.endDate||''}"></div>
+    </div>
+    <div class="field"><label>وسيلة القراءة *</label><select id="rf-medium"><option value="" ${!r?.medium?'selected':''} disabled>اختاري وسيلة القراءة...</option>${MEDIUM_OPTIONS.map(m=>`<option ${r?.medium===m?'selected':''}>${m}</option>`).join('')}</select></div>
+    <div class="field"><label>التقييم</label><div id="rf-stars">${starsHtml(tempRating,true,'setTempRating')}</div></div>
+    <div class="field"><label>ملاحظاتي عن الكتاب</label><textarea id="rf-notes" placeholder="انطباعك عن هذه القراءة تحديدًا...">${escapeHtml(r?.notes||'')}</textarea></div>
+    <div class="field-row">
+      <div class="field checkbox-row" style="margin-top:6px"><input type="checkbox" id="rf-reread" ${r?.reread?'checked':''}><label>هذه إعادة قراءة</label></div>
+      <div class="field"><label>هل ترغبين بإعادة قراءته مستقبلًا؟</label><select id="rf-want-reread">
+        <option value="" ${!r?.wantsReread?'selected':''}>لم أقرر بعد</option>
+        <option value="نعم" ${r?.wantsReread==='نعم'?'selected':''}>نعم</option>
+        <option value="لا" ${r?.wantsReread==='لا'?'selected':''}>لا</option>
+        <option value="ربما" ${r?.wantsReread==='ربما'?'selected':''}>ربما</option>
+      </select></div>
+    </div>
+    <div class="modal-actions">
+      ${r?`<button class="btn danger" onclick="deleteReading('${r.id}')">${ICONS.trash} حذف</button>`:''}
+      <button class="btn" onclick="closeModal()">إلغاء</button>
+      <button class="btn primary" onclick="saveReadingForm('${r?.id||''}')">حفظ</button>
+    </div>
+  `);
+}
+function setTempRating(n){ tempRating = n; document.getElementById('rf-stars').innerHTML = starsHtml(tempRating,true,'setTempRating'); }
+function saveReadingForm(id){
+  const bookId = document.getElementById('rf-book').value;
+  if(!bookId){ alert('اختاري كتابًا أولًا.'); return; }
+  const medium = document.getElementById('rf-medium').value;
+  if(!medium){ alert('اختيار وسيلة القراءة إجباري: ورقي، كيندل، PDF، أو مستعار.'); return; }
+  const data = {
+    bookId,
+    startDate: document.getElementById('rf-start').value,
+    endDate: document.getElementById('rf-end').value,
+    medium,
+    rating: tempRating,
+    reread: document.getElementById('rf-reread').checked,
+  };
+  if(id){ Object.assign(DB.readings.find(r=>r.id===id), data); }
+  else{ DB.readings.push(Object.assign({id:uid(), createdAt:Date.now()}, data)); }
+  // إذا انتهت القراءة حدّثي حالة الكتاب
+  if(data.endDate){ const b=getBook(bookId); if(b) b.status='قرأته'; }
+  saveDB(); closeModal();
+  render();
+}
+function deleteReading(id){
+  if(!confirm('حذف هذا السجل؟')) return;
+  DB.readings = DB.readings.filter(r=>r.id!==id);
+  saveDB(); closeModal(); render();
+}
+
+// ============ صفحة الكتاب ============
+let currentBookTab = 'info';
+function viewBook(bookId){
+  const b = getBook(bookId);
+  if(!b) return `<div class="empty"><h3>لم يُعثر على الكتاب</h3><button class="btn" onclick="navigate('library')">${ICONS.back} العودة للمكتبة</button></div>`;
+  const tabs = [
+    {id:'info', label:'معلومات'},
+    {id:'golden', label:'الفكرة الذهبية'},
+    {id:'ideas', label:'أهم الأفكار'},
+    {id:'summary', label:'التلخيص'},
+    {id:'quotes', label:'الاقتباسات'},
+    {id:'vocab', label:'المفردات'},
+    {id:'apply', label:'ما سأطبّقه'},
+    {id:'impact', label:'الأثر'},
+    {id:'links', label:'الروابط'},
+    {id:'identity', label:'الهوية'},
+  ];
+  return `
+  <button class="btn ghost sm" onclick="navigate('library')" style="margin-bottom:10px">${ICONS.back} المكتبة</button>
+  <div class="page-head" style="display:flex;gap:18px;align-items:flex-start">
+    <div style="width:110px;flex:none">
+      <div class="book-cover-ph">${escapeHtml(b.title)}</div>
+    </div>
+    <div style="flex:1">
+      <div class="eyebrow">${escapeHtml(b.author||'مؤلف غير معروف')}</div>
+      <h1>${escapeHtml(b.title)}</h1>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+        ${b.category?`<span class="tag">${escapeHtml(b.category)}</span>`:''}
+        ${b.type?`<span class="badge">${b.type}</span>`:''}
+        <span class="badge ${b.status==='قرأته'?'':'outline'}">${b.status||'لم أبدأ بعد'}</span>
+        ${b.owned?`<span class="badge soil">مملوك</span>`:''}
+        ${b.borrowed?`<span class="badge soil">معار</span>`:''}
+      </div>
+      <div style="margin-top:12px"><button class="btn sm" onclick="openBookForm('${b.id}')">${ICONS.edit} تعديل بيانات الكتاب</button></div>
+    </div>
+  </div>
+  <div class="tabs">${tabs.map(t=>`<div class="tab ${currentBookTab===t.id?'active':''}" onclick="setBookTab('${b.id}','${t.id}')">${t.label}</div>`).join('')}</div>
+  <div id="book-tab-content">${renderBookTab(b)}</div>
+  `;
+}
+function setBookTab(bookId, tab){ currentBookTab = tab; document.getElementById('book-tab-content').innerHTML = renderBookTab(getBook(bookId)); document.querySelectorAll('.tab').forEach(el=>el.classList.remove('active')); event.target.classList.add('active'); }
+
+function renderBookTab(b){
+  switch(currentBookTab){
+    case 'info': return bookTabInfo(b);
+    case 'golden': return bookTabGolden(b);
+    case 'ideas': return bookTabMainIdeas(b);
+    case 'summary': return bookTabSummary(b);
+    case 'quotes': return bookTabQuotes(b);
+    case 'vocab': return bookTabVocab(b);
+    case 'apply': return bookTabApply(b);
+    case 'impact': return bookTabImpact(b);
+    case 'links': return bookTabLinks(b);
+    case 'identity': return bookTabIdentity(b);
+    default: return '';
+  }
+}
+
+function bookTabInfo(b){
+  const readings = bookReadings(b.id);
+  let extra = '';
+  if(b.type==='رواية'){
+    extra = `<div class="card" style="margin-top:14px"><h3>حقول الرواية</h3>
+      <div class="field"><label>الشخصيات</label><textarea onchange="updateBookField('${b.id}','novel.characters',this.value)">${escapeHtml(b.novel?.characters||'')}</textarea></div>
+      <div class="field"><label>الرسالة</label><textarea onchange="updateBookField('${b.id}','novel.message',this.value)">${escapeHtml(b.novel?.message||'')}</textarea></div>
+      <div class="field"><label>الانطباع</label><textarea onchange="updateBookField('${b.id}','novel.impression',this.value)">${escapeHtml(b.novel?.impression||'')}</textarea></div>
+      <div class="field"><label>الأساليب اللغوية</label><textarea onchange="updateBookField('${b.id}','novel.styles',this.value)">${escapeHtml(b.novel?.styles||'')}</textarea></div>
+    </div>`;
+  } else if(b.type==='ديني'){
+    extra = `<div class="card" style="margin-top:14px"><h3>حقول الكتاب الديني</h3>
+      <div class="field"><label>الفوائد</label><textarea onchange="updateBookField('${b.id}','religious.benefits',this.value)">${escapeHtml(b.religious?.benefits||'')}</textarea></div>
+      <div class="field"><label>التطبيقات</label><textarea onchange="updateBookField('${b.id}','religious.applications',this.value)">${escapeHtml(b.religious?.applications||'')}</textarea></div>
+      <div class="field"><label>الآيات أو الأحاديث</label><textarea onchange="updateBookField('${b.id}','religious.verses',this.value)">${escapeHtml(b.religious?.verses||'')}</textarea></div>
+    </div>`;
+  }
+  return `
+  <div class="grid cols-2">
+    <div class="card">
+      <h3>البيانات الأساسية</h3>
+      <p style="font-size:13.5px;color:var(--ink-soft)">دار النشر: ${escapeHtml(b.publisher||'—')}</p>
+      <p style="font-size:13.5px;color:var(--ink-soft)">عدد الصفحات: ${b.pages||'—'}</p>
+      <p style="font-size:13.5px;color:var(--ink-soft)">مكانه في المكتبة: ${escapeHtml(b.shelf||'—')}</p>
+      <p style="font-size:13.5px;color:var(--ink-soft)">ملاحظات: ${escapeHtml(b.notes||'—')}</p>
+      ${(b.tags&&b.tags.length)?`<div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">${b.tags.map(t=>`<span class="tag">${escapeHtml(t)}</span>`).join('')}</div>`:''}
+    </div>
+    <div class="card">
+      <h3>سجل القراءة لهذا الكتاب</h3>
+      ${readings.length? readings.map(r=>`<div class="list-item"><div><div class="li-title">${r.startDate||'—'} → ${r.endDate||'جارية'}</div><div class="li-sub">${r.medium||''} ${r.reread?' · إعادة قراءة':''}</div></div>${r.rating?starsHtml(r.rating,false):''}</div>`).join('') : `<p style="color:var(--ink-faint);font-size:13px">لم تُسجَّل قراءة لهذا الكتاب بعد.</p>`}
+      <button class="btn sm" style="margin-top:8px" onclick="openReadingForm()" >${ICONS.plus} تسجيل قراءة</button>
+    </div>
+  </div>
+  ${extra}
+  `;
+}
+function updateBookField(bookId, path, value){
+  const b = getBook(bookId);
+  const parts = path.split('.');
+  if(parts.length===1){ b[parts[0]] = value; }
+  else { if(!b[parts[0]]) b[parts[0]]={}; b[parts[0]][parts[1]] = value; }
+  saveDB();
+}
+
+function bookTabGolden(b){
+  return `<div class="card">
+    <h3>الفكرة الذهبية</h3>
+    <p style="color:var(--ink-faint);font-size:13px;margin-bottom:10px">لو نسيتِ الكتاب كله، ما الفكرة الوحيدة التي تريدين أن تبقى؟</p>
+    <textarea style="min-height:120px;width:100%;padding:12px;border:1px solid var(--border);border-radius:10px;font-family:var(--font-display);font-size:18px" onchange="updateBookField('${b.id}','goldenIdea',this.value)">${escapeHtml(b.goldenIdea||'')}</textarea>
+  </div>`;
+}
+
+function listEditor(b, field, placeholder){
+  const items = b[field] || [];
+  return `<div id="list-editor-${field}-${b.id}">
+    ${items.map((it,i)=>`<div class="list-item"><span style="flex:1">${escapeHtml(it)}</span><button class="btn sm ghost" onclick="removeListItem('${b.id}','${field}',${i})">${ICONS.trash}</button></div>`).join('')}
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <input id="new-item-${field}-${b.id}" placeholder="${placeholder}" style="flex:1;padding:9px 12px;border:1px solid var(--border);border-radius:10px" onkeydown="if(event.key==='Enter'){addListItem('${b.id}','${field}')}">
+      <button class="btn" onclick="addListItem('${b.id}','${field}')">${ICONS.plus}</button>
+    </div>
+  </div>`;
+}
+function addListItem(bookId, field){
+  const input = document.getElementById(`new-item-${field}-${bookId}`);
+  const val = input.value.trim();
+  if(!val) return;
+  const b = getBook(bookId);
+  if(!b[field]) b[field]=[];
+  b[field].push(val);
+  saveDB();
+  document.getElementById(`list-editor-${field}-${bookId}`).outerHTML = listEditor(b, field, input.placeholder);
+}
+function removeListItem(bookId, field, idx){
+  const b = getBook(bookId);
+  b[field].splice(idx,1);
+  saveDB();
+  document.getElementById(`list-editor-${field}-${bookId}`).outerHTML = listEditor(b, field, '');
+}
+
+function bookTabMainIdeas(b){
+  return `<div class="card"><h3>أهم الأفكار</h3>${listEditor(b,'mainIdeas','فكرة جديدة...')}</div>`;
+}
+function bookTabSummary(b){
+  return `<div class="card"><h3>التلخيص (اختياري)</h3>
+    <textarea style="min-height:160px;width:100%;padding:12px;border:1px solid var(--border);border-radius:10px" onchange="updateBookField('${b.id}','summary',this.value)">${escapeHtml(b.summary||'')}</textarea>
+  </div>`;
+}
+function bookTabApply(b){
+  return `<div class="card"><h3>ما الذي سأطبّقه؟</h3>${listEditor(b,'applyList','تطبيق عملي جديد...')}</div>`;
+}
+function bookTabImpact(b){
+  return `<div class="card"><h3>أثر الكتاب علي</h3>
+    <textarea style="min-height:120px;width:100%;padding:12px;border:1px solid var(--border);border-radius:10px" onchange="updateBookField('${b.id}','impact',this.value)">${escapeHtml(b.impact||'')}</textarea>
+  </div>`;
+}
+
+function bookTabQuotes(b){
+  const quotes = bookQuotes(b.id);
+  return `<div>
+    <button class="btn primary sm" style="margin-bottom:12px" onclick="openQuoteForm(null,'${b.id}')">${ICONS.plus} اقتباس جديد لهذا الكتاب</button>
+    ${quotes.length? quotes.map(q=>quoteCardHtml(q,true)).join('') : `<p style="color:var(--ink-faint);font-size:13px">لا توجد اقتباسات محفوظة من هذا الكتاب بعد.</p>`}
+  </div>`;
+}
+function bookTabVocab(b){
+  const vocab = bookVocab(b.id);
+  return `<div>
+    <button class="btn primary sm" style="margin-bottom:12px" onclick="openVocabForm(null,'${b.id}')">${ICONS.plus} مفردة جديدة من هذا الكتاب</button>
+    ${vocab.length? vocab.map(v=>`<div class="list-item"><div><div class="li-title">${escapeHtml(v.word)}</div><div class="li-sub">${escapeHtml(v.meaning||'')} ${v.example?(' — مثال: '+escapeHtml(v.example)):''}</div></div><button class="btn sm ghost" onclick="openVocabForm('${v.id}')">${ICONS.edit}</button></div>`).join('') : `<p style="color:var(--ink-faint);font-size:13px">لا توجد مفردات محفوظة من هذا الكتاب بعد.</p>`}
+  </div>`;
+}
+
+function bookTabLinks(b){
+  b.links = b.links || {ideas:[],books:[],authors:[],people:[],projects:[]};
+  const ideaOptions = DB.ideas.map(i=>`<option value="${i.id}">${escapeHtml(i.name)}</option>`).join('');
+  const bookOptions = DB.books.filter(x=>x.id!==b.id).map(x=>`<option value="${x.id}">${escapeHtml(x.title)}</option>`).join('');
+  const projectOptions = DB.projects.map(p=>`<option value="${p.id}">${escapeHtml(p.name)}</option>`).join('');
+  return `<div class="grid cols-2">
+    <div class="card">
+      <h3>مرتبط بأفكار</h3>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">${b.links.ideas.map(iid=>{const i=getIdea(iid); return i?`<span class="badge" style="cursor:pointer" onclick="navigate('idea','${iid}')">${escapeHtml(i.name)} <span onclick="event.stopPropagation();unlinkItem('${b.id}','ideas','${iid}')" style="margin-inline-start:4px">×</span></span>`:'';}).join('')}</div>
+      <select onchange="linkItem('${b.id}','ideas',this.value); this.value=''"><option value="">+ ربط فكرة...</option>${ideaOptions}</select>
+    </div>
+    <div class="card">
+      <h3>مرتبط بكتب أخرى</h3>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">${b.links.books.map(bid=>{const bk=getBook(bid); return bk?`<span class="badge" style="cursor:pointer" onclick="navigate('book','${bid}')">${escapeHtml(bk.title)} <span onclick="event.stopPropagation();unlinkItem('${b.id}','books','${bid}')" style="margin-inline-start:4px">×</span></span>`:'';}).join('')}</div>
+      <select onchange="linkItem('${b.id}','books',this.value); this.value=''"><option value="">+ ربط كتاب...</option>${bookOptions}</select>
+    </div>
+    <div class="card">
+      <h3>مرتبط بمؤلفين</h3>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">${b.links.authors.map((a,i)=>`<span class="badge">${escapeHtml(a)} <span onclick="unlinkAuthor('${b.id}',${i})" style="margin-inline-start:4px">×</span></span>`).join('')}</div>
+      <div style="display:flex;gap:8px"><input id="link-author-${b.id}" placeholder="اسم مؤلف..." style="flex:1;padding:8px;border:1px solid var(--border);border-radius:8px"><button class="btn sm" onclick="addAuthorLink('${b.id}')">+</button></div>
+    </div>
+    <div class="card">
+      <h3>مرتبط بأشخاص</h3>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">${b.links.people.map((a,i)=>`<span class="badge">${escapeHtml(a)} <span onclick="unlinkPerson('${b.id}',${i})" style="margin-inline-start:4px">×</span></span>`).join('')}</div>
+      <div style="display:flex;gap:8px"><input id="link-person-${b.id}" placeholder="اسم شخص..." style="flex:1;padding:8px;border:1px solid var(--border);border-radius:8px"><button class="btn sm" onclick="addPersonLink('${b.id}')">+</button></div>
+    </div>
+    <div class="card">
+      <h3>مرتبط بمشاريع</h3>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">${b.links.projects.map(pid=>{const p=getProject(pid); return p?`<span class="badge" style="cursor:pointer" onclick="navigate('project','${pid}')">${escapeHtml(p.name)} <span onclick="event.stopPropagation();unlinkItem('${b.id}','projects','${pid}')" style="margin-inline-start:4px">×</span></span>`:'';}).join('')}</div>
+      <select onchange="linkItem('${b.id}','projects',this.value); this.value=''"><option value="">+ ربط مشروع...</option>${projectOptions}</select>
+    </div>
+  </div>`;
+}
+function linkItem(bookId, kind, val){
+  if(!val) return;
+  const b = getBook(bookId);
+  if(!b.links[kind].includes(val)) b.links[kind].push(val);
+  if(kind==='projects'){ const p=getProject(val); if(p && !p.bookIds.includes(bookId)) p.bookIds.push(bookId); }
+  saveDB(); document.getElementById('book-tab-content').innerHTML = renderBookTab(b);
+}
+function unlinkItem(bookId, kind, val){
+  const b = getBook(bookId);
+  b.links[kind] = b.links[kind].filter(x=>x!==val);
+  if(kind==='projects'){ const p=getProject(val); if(p) p.bookIds = p.bookIds.filter(x=>x!==bookId); }
+  saveDB(); document.getElementById('book-tab-content').innerHTML = renderBookTab(b);
+}
+function addAuthorLink(bookId){
+  const input = document.getElementById('link-author-'+bookId);
+  const val = input.value.trim(); if(!val) return;
+  const b = getBook(bookId); b.links.authors.push(val); saveDB();
+  document.getElementById('book-tab-content').innerHTML = renderBookTab(b);
+}
+function unlinkAuthor(bookId,i){ const b=getBook(bookId); b.links.authors.splice(i,1); saveDB(); document.getElementById('book-tab-content').innerHTML = renderBookTab(b); }
+function addPersonLink(bookId){
+  const input = document.getElementById('link-person-'+bookId);
+  const val = input.value.trim(); if(!val) return;
+  const b = getBook(bookId); b.links.people.push(val); saveDB();
+  document.getElementById('book-tab-content').innerHTML = renderBookTab(b);
+}
+function unlinkPerson(bookId,i){ const b=getBook(bookId); b.links.people.splice(i,1); saveDB(); document.getElementById('book-tab-content').innerHTML = renderBookTab(b); }
+
+function bookTabIdentity(b){
+  const contrib = DB.identityContrib[b.id] || [];
+  return `<div class="card">
+    <h3>ما الصفات التي خدمها هذا الكتاب؟</h3>
+    <p style="color:var(--ink-faint);font-size:13px;margin-bottom:12px">اختاري الصفات من هويتك التي ساهم هذا الكتاب في بنائها.</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      ${DB.identity.map(t=>`<span class="badge ${contrib.includes(t.id)?'':'outline'}" style="cursor:pointer" onclick="toggleIdentityContrib('${b.id}','${t.id}')">${escapeHtml(t.name)}</span>`).join('')}
+    </div>
+  </div>`;
+}
+function toggleIdentityContrib(bookId, traitId){
+  if(!DB.identityContrib[bookId]) DB.identityContrib[bookId]=[];
+  const arr = DB.identityContrib[bookId];
+  const idx = arr.indexOf(traitId);
+  if(idx>-1) arr.splice(idx,1); else arr.push(traitId);
+  saveDB();
+  document.getElementById('book-tab-content').innerHTML = renderBookTab(getBook(bookId));
+}
+
+// ============ قاعدة المعرفة (الأفكار) ============
+function viewIdeas(){
+  return `
+  <div class="page-head">
+    <div class="eyebrow">قاعدة المعرفة</div>
+    <h1>الأفكار</h1>
+    <p>كل فكرة مهمة دخلت حياتك عبر القراءة، وما يربطها من كتب.</p>
+  </div>
+  <div style="margin-bottom:16px"><button class="btn primary" onclick="openIdeaForm()">${ICONS.plus} فكرة جديدة</button></div>
+  ${DB.ideas.length===0? `<div class="empty"><h3>لا توجد أفكار محفوظة بعد</h3><p>كل فكرة قوية قرأتِها تستحق مكانًا هنا.</p></div>` :
+  `<div class="grid cols-3">${DB.ideas.map(i=>{
+    const linkedBooks = DB.books.filter(b=>(b.links?.ideas||[]).includes(i.id));
+    return `<div class="card" style="cursor:pointer" onclick="navigate('idea','${i.id}')">
+      <h3>${escapeHtml(i.name)}</h3>
+      <p style="font-size:12.5px;color:var(--ink-faint)">${linkedBooks.length} كتاب مرتبط</p>
+    </div>`;
+  }).join('')}</div>`}
+  `;
+}
+function openIdeaForm(ideaId){
+  const i = ideaId ? getIdea(ideaId) : null;
+  openModal(`
+    <div class="modal-head"><h2>${i?'تعديل الفكرة':'فكرة جديدة'}</h2><button class="modal-close" onclick="closeModal()">×</button></div>
+    <div class="field"><label>اسم الفكرة *</label><input id="if-name" value="${escapeHtml(i?.name||'')}"></div>
+    <div class="field"><label>ملاحظات</label><textarea id="if-notes">${escapeHtml(i?.notes||'')}</textarea></div>
+    <div class="modal-actions">
+      ${i?`<button class="btn danger" onclick="deleteIdea('${i.id}')">${ICONS.trash} حذف</button>`:''}
+      <button class="btn" onclick="closeModal()">إلغاء</button>
+      <button class="btn primary" onclick="saveIdeaForm('${i?.id||''}')">حفظ</button>
+    </div>
+  `);
+}
+function saveIdeaForm(id){
+  const name = document.getElementById('if-name').value.trim();
+  if(!name){ alert('اسم الفكرة مطلوب.'); return; }
+  const notes = document.getElementById('if-notes').value.trim();
+  if(id){ const i=getIdea(id); i.name=name; i.notes=notes; }
+  else{ DB.ideas.push({id:uid(), name, notes, createdAt:Date.now()}); }
+  saveDB(); closeModal(); render();
+}
+function deleteIdea(id){
+  if(!confirm('حذف هذه الفكرة؟ ستُزال روابطها من الكتب.')) return;
+  DB.ideas = DB.ideas.filter(i=>i.id!==id);
+  DB.books.forEach(b=>{ if(b.links) b.links.ideas = b.links.ideas.filter(x=>x!==id); });
+  DB.quotes.forEach(q=>{ if(q.ideaId===id) q.ideaId=''; });
+  saveDB(); closeModal(); navigate('ideas');
+}
+function viewIdea(ideaId){
+  const i = getIdea(ideaId);
+  if(!i) return `<div class="empty"><h3>لم يُعثر على الفكرة</h3></div>`;
+  const linkedBooks = DB.books.filter(b=>(b.links?.ideas||[]).includes(i.id));
+  const linkedQuotes = DB.quotes.filter(q=>q.ideaId===i.id);
+  return `
+  <button class="btn ghost sm" onclick="navigate('ideas')" style="margin-bottom:10px">${ICONS.back} قاعدة المعرفة</button>
+  <div class="page-head" style="display:flex;justify-content:space-between;align-items:flex-start">
+    <div><div class="eyebrow">فكرة</div><h1>${escapeHtml(i.name)}</h1></div>
+    <button class="btn sm" onclick="openIdeaForm('${i.id}')">${ICONS.edit} تعديل</button>
+  </div>
+  ${i.notes? `<div class="card" style="margin-bottom:16px"><p>${escapeHtml(i.notes)}</p></div>`:''}
+  <h3 style="margin-bottom:10px">الكتب المرتبطة (${linkedBooks.length})</h3>
+  ${linkedBooks.length? linkedBooks.map(b=>`<div class="list-item" onclick="navigate('book','${b.id}')" style="cursor:pointer"><span class="li-title">${escapeHtml(b.title)}</span><span class="li-sub">${escapeHtml(b.author||'')}</span></div>`).join('') : `<p style="color:var(--ink-faint);font-size:13px">لا توجد كتب مرتبطة بهذه الفكرة بعد. اربطيها من تبويب "الروابط" داخل صفحة أي كتاب.</p>`}
+  ${linkedQuotes.length? `<h3 style="margin:18px 0 10px">اقتباسات مرتبطة</h3>${linkedQuotes.map(q=>quoteCardHtml(q)).join('')}`:''}
+  `;
+}
+
+// ============ المشاريع ============
+function viewProjects(){
+  return `
+  <div class="page-head">
+    <div class="eyebrow">المشاريع</div>
+    <h1>مشاريع القراءة</h1>
+    <p>مجموعات كتب تخدم هدفًا واحدًا.</p>
+  </div>
+  <div style="margin-bottom:16px"><button class="btn primary" onclick="openProjectForm()">${ICONS.plus} مشروع جديد</button></div>
+  ${DB.projects.length===0? `<div class="empty"><h3>لا توجد مشاريع بعد</h3><p>أنشئي مشروع قراءة يجمع كتبًا حول هدف واحد، مثل "مشروع الانضباط".</p></div>` :
+  `<div class="grid cols-3">${DB.projects.map(p=>{
+    const books = p.bookIds.map(id=>getBook(id)).filter(Boolean);
+    const done = books.filter(b=>b.status==='قرأته').length;
+    return `<div class="card" style="cursor:pointer" onclick="navigate('project','${p.id}')">
+      <h3>${escapeHtml(p.name)}</h3>
+      <p style="font-size:12.5px;color:var(--ink-faint)">${done} من ${books.length} كتاب مكتمل</p>
+      <div style="height:6px;background:var(--surface-2);border-radius:6px;margin-top:8px;overflow:hidden"><div style="height:100%;width:${books.length?Math.round(done/books.length*100):0}%;background:var(--primary)"></div></div>
+    </div>`;
+  }).join('')}</div>`}
+  `;
+}
+function openProjectForm(projectId){
+  const p = projectId ? getProject(projectId) : null;
+  openModal(`
+    <div class="modal-head"><h2>${p?'تعديل المشروع':'مشروع جديد'}</h2><button class="modal-close" onclick="closeModal()">×</button></div>
+    <div class="field"><label>اسم المشروع *</label><input id="pf-name" value="${escapeHtml(p?.name||'')}"></div>
+    <div class="field"><label>الوصف</label><textarea id="pf-desc">${escapeHtml(p?.description||'')}</textarea></div>
+    <div class="modal-actions">
+      ${p?`<button class="btn danger" onclick="deleteProject('${p.id}')">${ICONS.trash} حذف</button>`:''}
+      <button class="btn" onclick="closeModal()">إلغاء</button>
+      <button class="btn primary" onclick="saveProjectForm('${p?.id||''}')">حفظ</button>
+    </div>
+  `);
+}
+function saveProjectForm(id){
+  const name = document.getElementById('pf-name').value.trim();
+  if(!name){ alert('اسم المشروع مطلوب.'); return; }
+  const description = document.getElementById('pf-desc').value.trim();
+  if(id){ const p=getProject(id); p.name=name; p.description=description; }
+  else{ DB.projects.push({id:uid(), name, description, bookIds:[], createdAt:Date.now()}); }
+  saveDB(); closeModal(); render();
+}
+function deleteProject(id){
+  if(!confirm('حذف هذا المشروع؟')) return;
+  DB.projects = DB.projects.filter(p=>p.id!==id);
+  DB.books.forEach(b=>{ if(b.links) b.links.projects = b.links.projects.filter(x=>x!==id); });
+  saveDB(); closeModal(); navigate('projects');
+}
+function viewProject(projectId){
+  const p = getProject(projectId);
+  if(!p) return `<div class="empty"><h3>لم يُعثر على المشروع</h3></div>`;
+  const books = p.bookIds.map(id=>getBook(id)).filter(Boolean);
+  const otherBooks = DB.books.filter(b=>!p.bookIds.includes(b.id));
+  return `
+  <button class="btn ghost sm" onclick="navigate('projects')" style="margin-bottom:10px">${ICONS.back} المشاريع</button>
+  <div class="page-head" style="display:flex;justify-content:space-between;align-items:flex-start">
+    <div><div class="eyebrow">مشروع</div><h1>${escapeHtml(p.name)}</h1><p>${escapeHtml(p.description||'')}</p></div>
+    <button class="btn sm" onclick="openProjectForm('${p.id}')">${ICONS.edit} تعديل</button>
+  </div>
+  <div class="card" style="margin-bottom:16px">
+    <h3>إضافة كتاب لهذا المشروع</h3>
+    <select onchange="addBookToProject('${p.id}',this.value); this.value=''"><option value="">اختاري كتابًا...</option>${otherBooks.map(b=>`<option value="${b.id}">${escapeHtml(b.title)}</option>`).join('')}</select>
+  </div>
+  ${books.length? books.map(b=>`<div class="list-item"><div style="cursor:pointer;flex:1" onclick="navigate('book','${b.id}')"><span class="li-title">${escapeHtml(b.title)}</span><span class="li-sub">${b.status||''}</span></div><button class="btn sm ghost" onclick="removeBookFromProject('${p.id}','${b.id}')">${ICONS.trash}</button></div>`).join('') : `<p style="color:var(--ink-faint);font-size:13px">لا توجد كتب في هذا المشروع بعد.</p>`}
+  `;
+}
+function addBookToProject(pid,bid){
+  if(!bid) return;
+  const p=getProject(pid); if(!p.bookIds.includes(bid)) p.bookIds.push(bid);
+  const b=getBook(bid); if(b){ b.links=b.links||{ideas:[],books:[],authors:[],people:[],projects:[]}; if(!b.links.projects.includes(pid)) b.links.projects.push(pid); }
+  saveDB(); navigate('project',pid);
+}
+function removeBookFromProject(pid,bid){
+  const p=getProject(pid); p.bookIds=p.bookIds.filter(x=>x!==bid);
+  const b=getBook(bid); if(b && b.links) b.links.projects = b.links.projects.filter(x=>x!==pid);
+  saveDB(); navigate('project',pid);
+}
+
+// ============ الهوية ============
+function viewIdentity(){
+  return `
+  <div class="page-head">
+    <div class="eyebrow">أنا</div>
+    <h1>الهوية</h1>
+    <p>الصفات التي تريدين بناءها، وكيف ساهمت كتبك في تشكيلها.</p>
+  </div>
+  <div style="margin-bottom:16px"><button class="btn primary" onclick="openTraitForm()">${ICONS.plus} صفة جديدة</button></div>
+  ${DB.identity.map(t=>{
+    const count = Object.values(DB.identityContrib).filter(arr=>arr.includes(t.id)).length;
+    return `<div class="identity-trait" style="cursor:pointer" onclick="navigate('trait','${t.id}')">
+      <div><div class="it-name">${escapeHtml(t.name)}</div><div class="it-count">${count} كتاب ساهم في هذه الصفة</div></div>
+      <button class="btn sm ghost" onclick="event.stopPropagation(); openTraitForm('${t.id}')">${ICONS.edit}</button>
+    </div>`;
+  }).join('')}
+  `;
+}
+function openTraitForm(traitId){
+  const t = traitId ? getTrait(traitId) : null;
+  openModal(`
+    <div class="modal-head"><h2>${t?'تعديل الصفة':'صفة جديدة'}</h2><button class="modal-close" onclick="closeModal()">×</button></div>
+    <div class="field"><label>اسم الصفة *</label><input id="tf-name" value="${escapeHtml(t?.name||'')}"></div>
+    <div class="modal-actions">
+      ${t?`<button class="btn danger" onclick="deleteTrait('${t.id}')">${ICONS.trash} حذف</button>`:''}
+      <button class="btn" onclick="closeModal()">إلغاء</button>
+      <button class="btn primary" onclick="saveTraitForm('${t?.id||''}')">حفظ</button>
+    </div>
+  `);
+}
+function saveTraitForm(id){
+  const name = document.getElementById('tf-name').value.trim();
+  if(!name){ alert('اسم الصفة مطلوب.'); return; }
+  if(id){ getTrait(id).name = name; }
+  else{ DB.identity.push({id:uid(), name}); }
+  saveDB(); closeModal(); render();
+}
+function deleteTrait(id){
+  if(!confirm('حذف هذه الصفة؟')) return;
+  DB.identity = DB.identity.filter(t=>t.id!==id);
+  Object.keys(DB.identityContrib).forEach(bid=>{ DB.identityContrib[bid] = DB.identityContrib[bid].filter(x=>x!==id); });
+  saveDB(); closeModal(); navigate('identity');
+}
+function viewTrait(traitId){
+  const t = getTrait(traitId);
+  if(!t) return `<div class="empty"><h3>لم يُعثر على الصفة</h3></div>`;
+  const bookIds = Object.entries(DB.identityContrib).filter(([bid,arr])=>arr.includes(t.id)).map(([bid])=>bid);
+  const books = bookIds.map(id=>getBook(id)).filter(Boolean);
+  return `
+  <button class="btn ghost sm" onclick="navigate('identity')" style="margin-bottom:10px">${ICONS.back} الهوية</button>
+  <div class="page-head"><div class="eyebrow">صفة</div><h1>${escapeHtml(t.name)}</h1></div>
+  <h3 style="margin-bottom:10px">ساهمت في بناء هذه الصفة (${books.length})</h3>
+  ${books.length? books.map(b=>`<div class="list-item" onclick="navigate('book','${b.id}')" style="cursor:pointer"><span class="li-title">${escapeHtml(b.title)}</span><span class="li-sub">${escapeHtml(b.author||'')}</span></div>`).join('') : `<p style="color:var(--ink-faint);font-size:13px">لم يُربط أي كتاب بهذه الصفة بعد. من صفحة أي كتاب، تبويب "الهوية"، يمكنك ربطه.</p>`}
+  `;
+}
+
+// ============ الاقتباسات ============
+function quoteCardHtml(q, showBookLink){
+  const book = getBook(q.bookId);
+  const idea = q.ideaId ? getIdea(q.ideaId) : null;
+  return `<div class="quote-card">
+    <div class="q-text">"${escapeHtml(q.text)}"</div>
+    <div class="q-meta">
+      <span>${book?('— '+escapeHtml(book.title)):''} ${q.author?(' · '+escapeHtml(q.author)):''} ${idea?(' · '+escapeHtml(idea.name)):''}</span>
+      <span style="display:flex;gap:8px;align-items:center">
+        <span style="cursor:pointer" onclick="toggleQuoteFavorite('${q.id}')">${q.favorite?ICONS.star:ICONS.starOutline}</span>
+        <span style="cursor:pointer" onclick="openQuoteForm('${q.id}')">${ICONS.edit}</span>
+      </span>
+    </div>
+  </div>`;
+}
+function toggleQuoteFavorite(id){
+  const q = DB.quotes.find(x=>x.id===id); q.favorite = !q.favorite; saveDB();
+  render();
+}
+function viewQuotes(){
+  const quotes = [...DB.quotes].sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+  return `
+  <div class="page-head">
+    <div class="eyebrow">الاقتباسات</div>
+    <h1>الاقتباسات</h1>
+    <p>كل جملة استحقت أن تبقى.</p>
+  </div>
+  <div style="margin-bottom:16px"><button class="btn primary" onclick="openQuoteForm()">${ICONS.plus} اقتباس جديد</button></div>
+  ${quotes.length===0? `<div class="empty"><h3>لا توجد اقتباسات محفوظة بعد</h3></div>` : quotes.map(q=>quoteCardHtml(q)).join('')}
+  `;
+}
+function openQuoteForm(quoteId, presetBookId){
+  const q = quoteId ? DB.quotes.find(x=>x.id===quoteId) : null;
+  const bookOptions = `<option value="">بدون ربط بكتاب</option>` + DB.books.map(b=>`<option value="${b.id}" ${(q?.bookId===b.id || presetBookId===b.id)?'selected':''}>${escapeHtml(b.title)}</option>`).join('');
+  const ideaOptions = `<option value="">بدون ربط بفكرة</option>` + DB.ideas.map(i=>`<option value="${i.id}" ${q?.ideaId===i.id?'selected':''}>${escapeHtml(i.name)}</option>`).join('');
+  openModal(`
+    <div class="modal-head"><h2>${q?'تعديل الاقتباس':'اقتباس جديد'}</h2><button class="modal-close" onclick="closeModal()">×</button></div>
+    <div class="field"><label>نص الاقتباس *</label><textarea id="qf-text" style="min-height:100px">${escapeHtml(q?.text||'')}</textarea></div>
+    <div class="field"><label>المؤلف</label><input id="qf-author" value="${escapeHtml(q?.author||'')}"></div>
+    <div class="field-row">
+      <div class="field"><label>الكتاب</label><select id="qf-book">${bookOptions}</select></div>
+      <div class="field"><label>الفكرة</label><select id="qf-idea">${ideaOptions}</select></div>
+    </div>
+    <div class="field"><label>وسوم (افصلي بينها بفاصلة)</label><input id="qf-tags" value="${(q?.tags||[]).join('، ')}"></div>
+    <div class="modal-actions">
+      ${q?`<button class="btn danger" onclick="deleteQuote('${q.id}')">${ICONS.trash} حذف</button>`:''}
+      <button class="btn" onclick="closeModal()">إلغاء</button>
+      <button class="btn primary" onclick="saveQuoteForm('${q?.id||''}')">حفظ</button>
+    </div>
+  `);
+}
+function saveQuoteForm(id){
+  const text = document.getElementById('qf-text').value.trim();
+  if(!text){ alert('نص الاقتباس مطلوب.'); return; }
+  const data = {
+    text,
+    author: document.getElementById('qf-author').value.trim(),
+    bookId: document.getElementById('qf-book').value,
+    ideaId: document.getElementById('qf-idea').value,
+    tags: document.getElementById('qf-tags').value.split('،').map(t=>t.trim()).filter(Boolean),
+  };
+  if(id){ Object.assign(DB.quotes.find(q=>q.id===id), data); }
+  else{ DB.quotes.push(Object.assign({id:uid(), createdAt:Date.now(), favorite:false}, data)); }
+  saveDB(); closeModal();
+  render();
+}
+function deleteQuote(id){
+  if(!confirm('حذف هذا الاقتباس؟')) return;
+  DB.quotes = DB.quotes.filter(q=>q.id!==id);
+  saveDB(); closeModal(); render();
+}
+
+// ============ المفردات ============
+function viewVocab(){
+  const vocab = [...DB.vocab].sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+  return `
+  <div class="page-head">
+    <div class="eyebrow">المفردات</div>
+    <h1>المفردات الجديدة</h1>
+    <p>كلمات تعلمتِها من القراءة.</p>
+  </div>
+  <div style="margin-bottom:16px"><button class="btn primary" onclick="openVocabForm()">${ICONS.plus} مفردة جديدة</button></div>
+  ${vocab.length===0? `<div class="empty"><h3>لا توجد مفردات محفوظة بعد</h3></div>` :
+  `<div class="grid cols-2">${vocab.map(v=>{
+    const b = getBook(v.bookId);
+    return `<div class="card">
+      <h3>${escapeHtml(v.word)}</h3>
+      <p style="font-size:13.5px">${escapeHtml(v.meaning||'')}</p>
+      ${v.example?`<p style="font-size:12.5px;color:var(--ink-faint)">مثال: ${escapeHtml(v.example)}</p>`:''}
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
+        <span class="tag">${b?escapeHtml(b.title):'—'}</span>
+        <button class="btn sm ghost" onclick="openVocabForm('${v.id}')">${ICONS.edit}</button>
+      </div>
+    </div>`;
+  }).join('')}</div>`}
+  `;
+}
+function openVocabForm(vocabId, presetBookId){
+  const v = vocabId ? DB.vocab.find(x=>x.id===vocabId) : null;
+  const bookOptions = `<option value="">بدون ربط بكتاب</option>` + DB.books.map(b=>`<option value="${b.id}" ${(v?.bookId===b.id || presetBookId===b.id)?'selected':''}>${escapeHtml(b.title)}</option>`).join('');
+  openModal(`
+    <div class="modal-head"><h2>${v?'تعديل المفردة':'مفردة جديدة'}</h2><button class="modal-close" onclick="closeModal()">×</button></div>
+    <div class="field"><label>الكلمة *</label><input id="vf-word" value="${escapeHtml(v?.word||'')}"></div>
+    <div class="field"><label>المعنى</label><textarea id="vf-meaning">${escapeHtml(v?.meaning||'')}</textarea></div>
+    <div class="field"><label>مثال</label><input id="vf-example" value="${escapeHtml(v?.example||'')}"></div>
+    <div class="field"><label>الكتاب</label><select id="vf-book">${bookOptions}</select></div>
+    <div class="modal-actions">
+      ${v?`<button class="btn danger" onclick="deleteVocab('${v.id}')">${ICONS.trash} حذف</button>`:''}
+      <button class="btn" onclick="closeModal()">إلغاء</button>
+      <button class="btn primary" onclick="saveVocabForm('${v?.id||''}')">حفظ</button>
+    </div>
+  `);
+}
+function saveVocabForm(id){
+  const word = document.getElementById('vf-word').value.trim();
+  if(!word){ alert('الكلمة مطلوبة.'); return; }
+  const data = { word, meaning: document.getElementById('vf-meaning').value.trim(), example: document.getElementById('vf-example').value.trim(), bookId: document.getElementById('vf-book').value };
+  if(id){ Object.assign(DB.vocab.find(v=>v.id===id), data); }
+  else{ DB.vocab.push(Object.assign({id:uid(), createdAt:Date.now()}, data)); }
+  saveDB(); closeModal(); render();
+}
+function deleteVocab(id){
+  if(!confirm('حذف هذه المفردة؟')) return;
+  DB.vocab = DB.vocab.filter(v=>v.id!==id);
+  saveDB(); closeModal(); render();
+}
+
+// ============ التقويم ============
+let calendarYear = new Date().getFullYear();
+function viewCalendar(){
+  const entries = DB.readings.filter(r=>r.startDate || r.endDate);
+  const events = [];
+  entries.forEach(r=>{
+    const b = getBook(r.bookId); if(!b) return;
+    if(r.startDate) events.push({date:r.startDate, type:'بدأت', book:b, r});
+    if(r.endDate) events.push({date:r.endDate, type:'أنهيتِ', book:b, r});
+  });
+  const yearEvents = events.filter(e=>e.date.slice(0,4)===String(calendarYear)).sort((a,b)=>a.date.localeCompare(b.date));
+  const months = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+  const grouped = {};
+  yearEvents.forEach(e=>{ const m = Number(e.date.slice(5,7))-1; (grouped[m]=grouped[m]||[]).push(e); });
+
+  return `
+  <div class="page-head">
+    <div class="eyebrow">التقويم</div>
+    <h1>تقويم القراءة</h1>
+    <p>متى بدأتِ كل كتاب ومتى أنهيتِه.</p>
+  </div>
+  <div class="filters">
+    <button class="btn sm" onclick="changeCalendarYear(-1)">‹ السنة السابقة</button>
+    <span class="badge" style="font-size:14px;padding:6px 14px">${calendarYear}</span>
+    <button class="btn sm" onclick="changeCalendarYear(1)">السنة التالية ›</button>
+  </div>
+  ${yearEvents.length===0? `<div class="empty"><h3>لا توجد أحداث قراءة في ${calendarYear}</h3></div>` :
+  `<div class="timeline">${Object.keys(grouped).sort((a,b)=>a-b).map(m=>`
+    <div class="t-month">
+      <h4>${months[m]}</h4>
+      ${grouped[m].map(e=>`<div class="list-item" onclick="navigate('book','${e.book.id}')" style="cursor:pointer">
+        <span class="li-title">${e.type} «${escapeHtml(e.book.title)}»</span>
+        <span class="li-sub">${e.date}</span>
+      </div>`).join('')}
+    </div>
+  `).join('')}</div>`}
+  `;
+}
+function changeCalendarYear(delta){ calendarYear += delta; document.getElementById('view-root').innerHTML = renderView(); }
+
+// ============ المراجعة السنوية ============
+let reviewYear = new Date().getFullYear();
+function viewReview(){
+  const finished = DB.readings.filter(r=>r.endDate && r.endDate.slice(0,4)===String(reviewYear));
+  const finishedBooks = finished.map(r=>({r, b:getBook(r.bookId)})).filter(x=>x.b);
+
+  let bestBook = null;
+  finishedBooks.forEach(x=>{ if(!bestBook || (x.r.rating||0) > (bestBook.r.rating||0)) bestBook = x; });
+
+  const ideaCount = {};
+  finishedBooks.forEach(x=>{ (x.b.links?.ideas||[]).forEach(iid=>{ ideaCount[iid]=(ideaCount[iid]||0)+1; }); });
+  const bestIdeaEntry = Object.entries(ideaCount).sort((a,b)=>b[1]-a[1])[0];
+  const bestIdea = bestIdeaEntry ? getIdea(bestIdeaEntry[0]) : null;
+
+  const yearQuotes = DB.quotes.filter(q=>{ const b=getBook(q.bookId); return b && finishedBooks.some(x=>x.b.id===b.id); });
+  const bestQuote = yearQuotes.find(q=>q.favorite) || yearQuotes[0];
+
+  const authorCount = {};
+  finishedBooks.forEach(x=>{ if(x.b.author) authorCount[x.b.author]=(authorCount[x.b.author]||0)+1; });
+  const bestAuthor = Object.entries(authorCount).sort((a,b)=>b[1]-a[1])[0];
+
+  const projectDone = {};
+  DB.projects.forEach(p=>{ projectDone[p.id] = p.bookIds.filter(bid=>finishedBooks.some(x=>x.b.id===bid)).length; });
+  const bestProjectEntry = Object.entries(projectDone).sort((a,b)=>b[1]-a[1])[0];
+  const bestProject = (bestProjectEntry && bestProjectEntry[1]>0) ? getProject(bestProjectEntry[0]) : null;
+
+  const totalPages = finishedBooks.reduce((s,x)=>s+(Number(x.b.pages)||0),0);
+
+  return `
+  <div class="filters">
+    <button class="btn sm" onclick="changeReviewYear(-1)">‹ السنة السابقة</button>
+    <span class="badge" style="font-size:14px;padding:6px 14px">${reviewYear}</span>
+    <button class="btn sm" onclick="changeReviewYear(1)">السنة التالية ›</button>
+  </div>
+  <div class="review-hero">
+    <div class="eyebrow" style="color:rgba(255,255,255,.75)">مراجعة سنوية</div>
+    <h1>بستان عام ${reviewYear}</h1>
+    <p>${finishedBooks.length? `قرأتِ ${finishedBooks.length} كتابًا هذا العام، بمجموع ${totalPages.toLocaleString('ar')} صفحة${bestAuthor?('، وكان أكثر من رافقكِ هو '+bestAuthor[0]):''}.` : 'لم تُسجَّل قراءات مكتملة لهذا العام بعد.'}</p>
+  </div>
+  ${finishedBooks.length===0? '' : `
+  <div class="grid cols-2">
+    <div class="card"><h3>أفضل كتاب</h3>${bestBook? `<p style="font-family:var(--font-display);font-size:20px">${escapeHtml(bestBook.b.title)}</p><p style="color:var(--ink-faint);font-size:13px">${escapeHtml(bestBook.b.author||'')}</p>${bestBook.r.rating?starsHtml(bestBook.r.rating,false):''}`:'<p style="color:var(--ink-faint);font-size:13px">لا يوجد تقييم مسجل بعد.</p>'}</div>
+    <div class="card"><h3>أفضل فكرة</h3>${bestIdea? `<p style="font-family:var(--font-display);font-size:20px">${escapeHtml(bestIdea.name)}</p><p style="color:var(--ink-faint);font-size:13px">تكررت في ${bestIdeaEntry[1]} كتاب</p>`:'<p style="color:var(--ink-faint);font-size:13px">لا توجد أفكار مرتبطة بعد.</p>'}</div>
+  </div>
+  <div class="grid cols-2" style="margin-top:14px">
+    <div class="card"><h3>أكثر مؤلف أثّر فيّ</h3>${bestAuthor? `<p style="font-family:var(--font-display);font-size:20px">${escapeHtml(bestAuthor[0])}</p><p style="color:var(--ink-faint);font-size:13px">${bestAuthor[1]} كتاب</p>`:'<p style="color:var(--ink-faint);font-size:13px">—</p>'}</div>
+    <div class="card"><h3>أكثر مشروع أنجزتِه</h3>${bestProject? `<p style="font-family:var(--font-display);font-size:20px">${escapeHtml(bestProject.name)}</p>`:'<p style="color:var(--ink-faint);font-size:13px">لا يوجد مشروع مكتمل هذا العام بعد.</p>'}</div>
+  </div>
+  ${bestQuote? `<div style="margin-top:14px"><h3 style="margin-bottom:10px">أفضل اقتباس</h3>${quoteCardHtml(bestQuote)}</div>`:''}
+  `}
+  `;
+}
+function changeReviewYear(delta){ reviewYear += delta; document.getElementById('view-root').innerHTML = renderView(); }
+
+// ============ البحث الشامل ============
+function viewSearch(){
+  return `
+  <div class="page-head">
+    <div class="eyebrow">البحث</div>
+    <h1>البحث الشامل</h1>
+    <p>ابحثي في الكتب، المؤلفين، الاقتباسات، الأفكار، المفردات، والمشاريع من الأعلى، أو من هنا.</p>
+  </div>
+  <input class="search-input" style="max-width:100%" placeholder="اكتبي كلمة للبحث..." oninput="renderInlineSearch(this.value)">
+  <div id="inline-search-results" style="margin-top:16px"></div>
+  `;
+}
+function searchAll(term){
+  term = term.trim().toLowerCase();
+  if(!term) return null;
+  const books = DB.books.filter(b=>(b.title||'').toLowerCase().includes(term) || (b.author||'').toLowerCase().includes(term));
+  const ideas = DB.ideas.filter(i=>(i.name||'').toLowerCase().includes(term));
+  const quotes = DB.quotes.filter(q=>(q.text||'').toLowerCase().includes(term));
+  const vocab = DB.vocab.filter(v=>(v.word||'').toLowerCase().includes(term) || (v.meaning||'').toLowerCase().includes(term));
+  const projects = DB.projects.filter(p=>(p.name||'').toLowerCase().includes(term));
+  return {books,ideas,quotes,vocab,projects};
+}
+function renderInlineSearch(term){
+  const box = document.getElementById('inline-search-results');
+  const res = searchAll(term);
+  if(!res){ box.innerHTML=''; return; }
+  const total = res.books.length+res.ideas.length+res.quotes.length+res.vocab.length+res.projects.length;
+  if(total===0){ box.innerHTML = `<p style="color:var(--ink-faint)">لا نتائج مطابقة لـ "${escapeHtml(term)}".</p>`; return; }
+  let html='';
+  if(res.books.length) html += `<h3>كتب</h3>` + res.books.map(b=>`<div class="list-item" onclick="navigate('book','${b.id}')" style="cursor:pointer"><span class="li-title">${escapeHtml(b.title)}</span><span class="li-sub">${escapeHtml(b.author||'')}</span></div>`).join('');
+  if(res.ideas.length) html += `<h3 style="margin-top:14px">أفكار</h3>` + res.ideas.map(i=>`<div class="list-item" onclick="navigate('idea','${i.id}')" style="cursor:pointer"><span class="li-title">${escapeHtml(i.name)}</span></div>`).join('');
+  if(res.quotes.length) html += `<h3 style="margin-top:14px">اقتباسات</h3>` + res.quotes.map(q=>quoteCardHtml(q)).join('');
+  if(res.vocab.length) html += `<h3 style="margin-top:14px">مفردات</h3>` + res.vocab.map(v=>`<div class="list-item"><span class="li-title">${escapeHtml(v.word)}</span><span class="li-sub">${escapeHtml(v.meaning||'')}</span></div>`).join('');
+  if(res.projects.length) html += `<h3 style="margin-top:14px">مشاريع</h3>` + res.projects.map(p=>`<div class="list-item" onclick="navigate('project','${p.id}')" style="cursor:pointer"><span class="li-title">${escapeHtml(p.name)}</span></div>`).join('');
+  box.innerHTML = html;
+}
+
+function onGlobalSearch(term){
+  const box = document.getElementById('search-results-box');
+  if(!term.trim()){ box.innerHTML=''; return; }
+  const res = searchAll(term);
+  const total = res.books.length+res.ideas.length+res.quotes.length+res.vocab.length+res.projects.length;
+  if(total===0){ box.innerHTML = `<div class="search-results"><div class="sr-empty">لا نتائج مطابقة</div></div>`; return; }
+  let html = `<div class="search-results">`;
+  if(res.books.length){ html += `<div class="sr-group">كتب</div>` + res.books.slice(0,5).map(b=>`<div class="sr-item" onclick="navigate('book','${b.id}');document.getElementById('search-results-box').innerHTML=''" style="cursor:pointer">${escapeHtml(b.title)}</div>`).join(''); }
+  if(res.ideas.length){ html += `<div class="sr-group">أفكار</div>` + res.ideas.slice(0,5).map(i=>`<div class="sr-item" onclick="navigate('idea','${i.id}');document.getElementById('search-results-box').innerHTML=''" style="cursor:pointer">${escapeHtml(i.name)}</div>`).join(''); }
+  if(res.quotes.length){ html += `<div class="sr-group">اقتباسات</div>` + res.quotes.slice(0,3).map(q=>`<div class="sr-item">${escapeHtml(q.text.slice(0,60))}...</div>`).join(''); }
+  if(res.vocab.length){ html += `<div class="sr-group">مفردات</div>` + res.vocab.slice(0,5).map(v=>`<div class="sr-item">${escapeHtml(v.word)}</div>`).join(''); }
+  if(res.projects.length){ html += `<div class="sr-group">مشاريع</div>` + res.projects.slice(0,5).map(p=>`<div class="sr-item" onclick="navigate('project','${p.id}');document.getElementById('search-results-box').innerHTML=''" style="cursor:pointer">${escapeHtml(p.name)}</div>`).join(''); }
+  html += `</div>`;
+  box.innerHTML = html;
+}
+
+// ============ التشغيل ============
+async function init(){
+  if(FIREBASE_ENABLED){
+    fbAuth.onAuthStateChanged(async function(user){
+      if(user){
+        currentUser = user;
+        await loadDB();
+        document.documentElement.setAttribute('data-theme', DB.settings.dark?'dark':'light');
+        render();
+      }else{
+        currentUser = null;
+        renderLoginScreen();
+      }
+    });
+  }else{
+    await loadDB();
+    document.documentElement.setAttribute('data-theme', DB.settings.dark?'dark':'light');
+    render();
+  }
+}
+init();
+
+// ============ شاشة تسجيل الدخول (Firebase) ============
+function renderLoginScreen(err){
+  const app = document.getElementById('app');
+  app.innerHTML = `
+  <div class="login-screen">
+    <div class="login-card">
+      <div class="brand-mark">${ICONS.garden}</div>
+      <h1>بستان</h1>
+      <p class="sub">${authMode==='login'?'سجّلي الدخول لمتابعة مكتبتك ومعرفتك':'أنشئي حسابًا جديدًا لبستانك'}</p>
+      <div class="login-error">${err?escapeHtml(err):''}</div>
+      <div class="field"><label>البريد الإلكتروني</label><input id="auth-email" type="email" placeholder="you@example.com"></div>
+      <div class="field"><label>كلمة المرور</label><input id="auth-password" type="password" placeholder="••••••••"></div>
+      <button class="btn primary" style="width:100%;justify-content:center;padding:11px" onclick="submitAuth()">${authMode==='login'?'تسجيل الدخول':'إنشاء الحساب'}</button>
+      <div class="login-toggle" onclick="authMode = authMode==='login'?'signup':'login'; renderLoginScreen();">
+        ${authMode==='login'?'ليس لدي حساب — إنشاء حساب جديد':'لدي حساب بالفعل — تسجيل الدخول'}
+      </div>
+    </div>
+  </div>`;
+}
+function submitAuth(){
+  const email = document.getElementById('auth-email').value.trim();
+  const password = document.getElementById('auth-password').value;
+  if(!email || !password){ renderLoginScreen('الرجاء تعبئة البريد الإلكتروني وكلمة المرور.'); return; }
+  const action = authMode==='login'
+    ? fbAuth.signInWithEmailAndPassword(email, password)
+    : fbAuth.createUserWithEmailAndPassword(email, password);
+  action.catch(function(e){ renderLoginScreen(translateAuthError(e.code)); });
+}
+function translateAuthError(code){
+  const map = {
+    'auth/invalid-email':'صيغة البريد الإلكتروني غير صحيحة.',
+    'auth/user-not-found':'لا يوجد حساب بهذا البريد.',
+    'auth/wrong-password':'كلمة المرور غير صحيحة.',
+    'auth/email-already-in-use':'هذا البريد مسجّل مسبقًا — سجّلي الدخول بدلًا من ذلك.',
+    'auth/weak-password':'كلمة المرور ضعيفة جدًا (6 أحرف على الأقل).',
+    'auth/invalid-credential':'بيانات الدخول غير صحيحة.',
+  };
+  return map[code] || 'حدث خطأ غير متوقع. حاولي مرة أخرى.';
+}
+function logout(){
+  if(!confirm('تسجيل الخروج؟')) return;
+  fbAuth.signOut();
+}
+
+// ============ استيراد من إكسل / CSV (المكتبة أو نديم) ============
+let excelImportState = { headers:[], rows:[], target:'library' };
+
+function openExcelImport(){
+  openModal(`
+    <div class="modal-head"><h2>استيراد من إكسل أو CSV</h2><button class="modal-close" onclick="closeModal()">×</button></div>
+    <p style="font-size:13px;color:var(--ink-soft);margin-bottom:14px">يصلح هذا لاستيراد فهرسة مكتبتك من إكسل، أو تصدير سجل قراءتك من تطبيق نديم (صدّريه أولًا كملف CSV أو Excel من التطبيق).</p>
+    <div class="field"><label>ماذا تريدين استيراده؟</label>
+      <select id="ei-target">
+        <option value="library">فهرس المكتبة (كتب أملكها)</option>
+        <option value="log">سجل القراءة (قراءات، مثل تصدير نديم)</option>
+      </select>
+    </div>
+    <div class="field"><label>اختاري الملف</label>
+      <button class="btn" onclick="document.getElementById('excel-import-input').click()">${ICONS.upload} اختيار ملف Excel أو CSV</button>
+      <span id="ei-filename" style="font-size:12.5px;color:var(--ink-faint)"></span>
+    </div>
+    <div class="modal-actions"><button class="btn" onclick="closeModal()">إلغاء</button></div>
+  `);
+}
+
+function handleExcelFile(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  const target = document.getElementById('ei-target') ? document.getElementById('ei-target').value : 'library';
+  excelImportState.target = target;
+  const reader = new FileReader();
+  reader.onload = function(ev){
+    try{
+      const wb = XLSX.read(ev.target.result, {type:'binary'});
+      const sheet = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(sheet, {header:1, defval:''});
+      if(rows.length < 2){ alert('لم يُعثر على بيانات كافية في الملف.'); return; }
+      excelImportState.headers = rows[0].map(h=>String(h||'').trim());
+      excelImportState.rows = rows.slice(1).filter(r=>r.some(c=>String(c||'').trim()!==''));
+      renderExcelMapping();
+    }catch(err){ alert('تعذرت قراءة الملف. تأكدي أنه بصيغة Excel أو CSV صحيحة.'); }
+  };
+  reader.readAsBinaryString(file);
+}
+
+function excelTargetFields(target){
+  if(target==='library'){
+    return [
+      {key:'title', label:'اسم الكتاب *'},
+      {key:'author', label:'المؤلف'},
+      {key:'category', label:'التصنيف'},
+      {key:'publisher', label:'دار النشر'},
+      {key:'pages', label:'عدد الصفحات'},
+      {key:'status', label:'حالة القراءة'},
+      {key:'shelf', label:'مكانه في المكتبة (الرف)'},
+      {key:'notes', label:'ملاحظات'},
+      {key:'', label:'— تجاهل —'},
+    ];
+  }
+  return [
+    {key:'title', label:'اسم الكتاب *'},
+    {key:'author', label:'المؤلف (لإنشاء كتاب جديد عند الحاجة)'},
+    {key:'startDate', label:'تاريخ البداية'},
+    {key:'endDate', label:'تاريخ النهاية'},
+    {key:'medium', label:'وسيلة القراءة (ورقي/كيندل/PDF/مستعار)'},
+    {key:'rating', label:'التقييم (رقم من 1 إلى 5)'},
+    {key:'reread', label:'إعادة قراءة (نعم/لا)'},
+    {key:'', label:'— تجاهل —'},
+  ];
+}
+
+function guessMapping(header, fields){
+  const h = header.toLowerCase();
+  const dict = {
+    title:['اسم الكتاب','العنوان','title','name','كتاب'],
+    author:['المؤلف','الكاتب','author'],
+    category:['تصنيف','category','نوع','قسم'],
+    publisher:['دار النشر','ناشر','publisher'],
+    pages:['صفحات','pages'],
+    status:['حالة','status'],
+    shelf:['رف','مكان','shelf'],
+    notes:['ملاحظات','notes'],
+    startDate:['بداية','start'],
+    endDate:['نهاية','انتهاء','end','finish'],
+    medium:['وسيلة','وسيط','medium'],
+    rating:['تقييم','rating'],
+    reread:['إعادة','reread'],
+  };
+  for(const f of fields){
+    if(!f.key) continue;
+    const keywords = dict[f.key]||[];
+    if(keywords.some(k=>h.includes(k))) return f.key;
+  }
+  return '';
+}
+
+function renderExcelMapping(){
+  const fields = excelTargetFields(excelImportState.target);
+  openModal(`
+    <div class="modal-head"><h2>مطابقة الأعمدة</h2><button class="modal-close" onclick="closeModal()">×</button></div>
+    <p style="font-size:13px;color:var(--ink-soft);margin-bottom:14px">حددي أي عمود من ملفك يقابل كل حقل في بستان. تم العثور على ${excelImportState.rows.length} صفًا.</p>
+    <div id="ei-mapping-fields">
+    ${excelImportState.headers.map((h,i)=>{
+      const guess = guessMapping(h, fields);
+      return `<div class="field-row">
+        <div class="field" style="flex:1"><label>${escapeHtml(h||('عمود '+(i+1)))}</label><input value="مثال: ${escapeHtml(String(excelImportState.rows[0]?.[i]||''))}" disabled style="color:var(--ink-faint);font-size:12px"></div>
+        <div class="field" style="flex:1"><label>يقابل في بستان</label><select data-col="${i}" class="ei-map-select">${fields.map(f=>`<option value="${f.key}" ${f.key===guess?'selected':''}>${f.label}</option>`).join('')}</select></div>
+      </div>`;
+    }).join('')}
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal()">إلغاء</button>
+      <button class="btn primary" onclick="confirmExcelImport()">استيراد ${excelImportState.rows.length} صف</button>
+    </div>
+  `);
+}
+
+function confirmExcelImport(){
+  const selects = document.querySelectorAll('.ei-map-select');
+  const colMap = {}; // fieldKey -> colIndex
+  selects.forEach(s=>{ const key = s.value; if(key) colMap[key] = Number(s.dataset.col); });
+  if(colMap.title===undefined){ alert('يجب تحديد عمود "اسم الكتاب" على الأقل.'); return; }
+
+  let count = 0;
+  excelImportState.rows.forEach(row=>{
+    const title = String(row[colMap.title]||'').trim();
+    if(!title) return;
+
+    if(excelImportState.target==='library'){
+      const exists = DB.books.find(b=>b.owned && b.title.trim()===title);
+      const data = {
+        title,
+        author: colMap.author!==undefined? String(row[colMap.author]||'').trim() : '',
+        category: colMap.category!==undefined? String(row[colMap.category]||'').trim() : '',
+        publisher: colMap.publisher!==undefined? String(row[colMap.publisher]||'').trim() : '',
+        pages: colMap.pages!==undefined? String(row[colMap.pages]||'').trim() : '',
+        status: colMap.status!==undefined? normalizeStatus(String(row[colMap.status]||'')) : 'لم أبدأ بعد',
+        shelf: colMap.shelf!==undefined? String(row[colMap.shelf]||'').trim() : '',
+        notes: colMap.notes!==undefined? String(row[colMap.notes]||'').trim() : '',
+        owned: true,
+      };
+      if(exists){ Object.assign(exists, data); }
+      else{
+        DB.books.push(Object.assign({
+          id: uid(), createdAt: Date.now(), type:'عام', borrowed:false, tags:[],
+          goldenIdea:'', mainIdeas:[], summary:'', applyList:[], impact:'',
+          links:{ideas:[],books:[],authors:[],people:[],projects:[]},
+          novel:{characters:'',message:'',impression:'',styles:''},
+          religious:{benefits:'',applications:'',verses:''},
+        }, data));
+      }
+      count++;
+    }else{
+      const author = colMap.author!==undefined? String(row[colMap.author]||'').trim() : '';
+      let book = DB.books.find(b=>b.title.trim()===title);
+      if(!book){
+        book = {
+          id: uid(), createdAt: Date.now(), title, author, category:'', publisher:'', pages:'',
+          status:'قرأته', owned:false, borrowed:false, shelf:'', notes:'', type:'عام', tags:[],
+          goldenIdea:'', mainIdeas:[], summary:'', applyList:[], impact:'',
+          links:{ideas:[],books:[],authors:[],people:[],projects:[]},
+          novel:{characters:'',message:'',impression:'',styles:''},
+          religious:{benefits:'',applications:'',verses:''},
+        };
+        DB.books.push(book);
+      }
+      const endDateRaw = colMap.endDate!==undefined? String(row[colMap.endDate]||'').trim() : '';
+      const startDateRaw = colMap.startDate!==undefined? String(row[colMap.startDate]||'').trim() : '';
+      const mediumRaw = colMap.medium!==undefined? String(row[colMap.medium]||'').trim() : '';
+      const ratingRaw = colMap.rating!==undefined? String(row[colMap.rating]||'').trim() : '';
+      const rereadRaw = colMap.reread!==undefined? String(row[colMap.reread]||'').trim() : '';
+      DB.readings.push({
+        id: uid(), createdAt: Date.now(), bookId: book.id,
+        startDate: normalizeDate(startDateRaw), endDate: normalizeDate(endDateRaw),
+        medium: normalizeMedium(mediumRaw), rating: Number(ratingRaw)||0,
+        reread: /نعم|yes|true|1/i.test(rereadRaw),
+      });
+      if(endDateRaw) book.status = 'قرأته';
+      count++;
+    }
+  });
+  saveDB(); closeModal();
+  alert(`تم استيراد ${count} ${excelImportState.target==='library'?'كتاب':'قراءة'} بنجاح.`);
+  navigate(excelImportState.target==='library'?'library':'log');
+}
+
+function normalizeStatus(raw){
+  raw = raw.trim();
+  if(/قرأ|انتهي|منته|تم/.test(raw)) return 'قرأته';
+  if(/أقرأ|جاري|حالي/.test(raw)) return 'أقرأ الآن';
+  return 'لم أبدأ بعد';
+}
+function normalizeMedium(raw){
+  raw = raw.trim().toLowerCase();
+  if(/كيندل|kindle/.test(raw)) return 'كيندل';
+  if(/pdf/.test(raw)) return 'PDF';
+  if(/مستعار|معار/.test(raw)) return 'مستعار';
+  if(/ورق|paper/.test(raw)) return 'ورقي';
+  return raw ? 'ورقي' : '';
+}
+function normalizeDate(raw){
+  raw = String(raw||'').trim();
+  if(!raw) return '';
+  // رقم تسلسلي من إكسل
+  if(/^\d+(\.\d+)?$/.test(raw)){
+    const d = XLSX.SSF.parse_date_code(Number(raw));
+    if(d) return `${d.y}-${String(d.m).padStart(2,'0')}-${String(d.d).padStart(2,'0')}`;
+  }
+  const m = raw.match(/(\d{4})[\/\-.](\d{1,2})[\/\-.](\d{1,2})/);
+  if(m) return `${m[1]}-${m[2].padStart(2,'0')}-${m[3].padStart(2,'0')}`;
+  const m2 = raw.match(/(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4})/);
+  if(m2) return `${m2[3]}-${m2[2].padStart(2,'0')}-${m2[1].padStart(2,'0')}`;
+  return raw;
+}
+
+</script>
+</body>
+</html>
