@@ -359,6 +359,7 @@ const ICONS = {
   trash: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 7h16M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2M6 7l1 13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-13"/></svg>`,
   edit: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>`,
   link: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M9 15l6-6M8 12l-2 2a3.5 3.5 0 0 0 5 5l2-2M16 12l2-2a3.5 3.5 0 0 0-5-5l-2 2"/></svg>`,
+  loan: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 8h11M11 4l4 4-4 4"/><path d="M20 16H9M13 20l-4-4 4-4"/></svg>`,
 };
 
 const NAV = [
@@ -369,6 +370,7 @@ const NAV = [
   {group:'القراءة', items:[
     {id:'library', label:'فهرس المكتبة', icon:'library'},
     {id:'log', label:'سجل القراءة', icon:'log'},
+    {id:'loans', label:'الإعارة والاستعارة', icon:'loan'},
     {id:'calendar', label:'التقويم', icon:'calendar'},
   ]},
   {group:'المعرفة', items:[
@@ -391,7 +393,7 @@ function uid(){ return 'id' + Date.now().toString(36) + Math.random().toString(3
 
 function defaultDB(){
   return {
-    books:[], readings:[], ideas:[], projects:[], quotes:[], vocab:[],
+    books:[], readings:[], ideas:[], projects:[], quotes:[], vocab:[], loans:[],
     identity: DEFAULT_TRAITS.map(name=>({id:uid(), name})),
     identityContrib: {}, // bookId -> [traitId]
     settings: { dark:false }
@@ -415,6 +417,7 @@ async function loadDB(){
   if(!DB.identity) DB.identity = DEFAULT_TRAITS.map(name=>({id:uid(), name}));
   if(!DB.identityContrib) DB.identityContrib = {};
   if(!DB.settings) DB.settings = {dark:false};
+  if(!DB.loans) DB.loans = [];
 }
 
 let saveTimer=null;
@@ -581,6 +584,7 @@ function renderView(){
     case 'dashboard': return viewDashboard();
     case 'library': return viewLibrary();
     case 'log': return viewLog();
+    case 'loans': return viewLoans();
     case 'book': return viewBook(currentParam);
     case 'ideas': return viewIdeas();
     case 'idea': return viewIdea(currentParam);
@@ -852,10 +856,7 @@ function openBookForm(bookId){
       <div class="field"><label>نوع الكتاب</label><select id="bf-type">${TYPE_OPTIONS.map(t=>`<option ${b?.type===t?'selected':''}>${t}</option>`).join('')}</select></div>
       <div class="field"><label>حالة القراءة</label><select id="bf-status">${STATUS_OPTIONS.map(s=>`<option ${b?.status===s?'selected':''}>${s}</option>`).join('')}</select></div>
     </div>
-    <div class="field-row">
-      <div class="field checkbox-row" style="margin-top:22px"><input type="checkbox" id="bf-owned" ${(b?.owned!==false)?'checked':''}><label>هذا الكتاب موجود في مكتبتي فعليًا</label></div>
-      <div class="field checkbox-row" style="margin-top:22px"><input type="checkbox" id="bf-borrowed" ${b?.borrowed?'checked':''}><label>معار حاليًا لشخص آخر</label></div>
-    </div>
+    <div class="field checkbox-row" style="margin-top:4px"><input type="checkbox" id="bf-owned" ${(b?.owned!==false)?'checked':''}><label>هذا الكتاب موجود في مكتبتي فعليًا</label></div>
     <details class="extra-details">
       <summary>معلومات إضافية</summary>
       <div class="field"><label>عدد الصفحات (اختياري)</label><input id="bf-pages" type="number" value="${b?.pages||''}"></div>
@@ -881,7 +882,6 @@ function saveBookForm(id){
     type: document.getElementById('bf-type').value,
     status: document.getElementById('bf-status').value,
     owned: document.getElementById('bf-owned').checked,
-    borrowed: document.getElementById('bf-borrowed').checked,
     shelf: document.getElementById('bf-shelf').value.trim(),
     notes: document.getElementById('bf-notes').value.trim(),
     tags: document.getElementById('bf-tags').value.split('،').map(t=>t.trim()).filter(Boolean),
@@ -940,6 +940,129 @@ function viewLog(){
       </div>`;
    }).join('')}
   `;
+}
+
+// ============ الإعارة والاستعارة ============
+function bookLoans(bookId){ return DB.loans.filter(l=>l.bookId===bookId); }
+function activeLentLoan(bookId){ return DB.loans.find(l=>l.type==='lent' && l.bookId===bookId && !l.returned); }
+function syncBookBorrowedFlag(bookId){
+  const b = getBook(bookId);
+  if(!b) return;
+  b.borrowed = !!activeLentLoan(bookId);
+}
+function isOverdue(loan){
+  return !loan.returned && loan.dueDate && loan.dueDate < new Date().toISOString().slice(0,10);
+}
+function viewLoans(){
+  const lent = DB.loans.filter(l=>l.type==='lent').sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  const borrowed = DB.loans.filter(l=>l.type==='borrowed').sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  const renderRow = (l)=>{
+    const b = l.bookId ? getBook(l.bookId) : null;
+    const title = b ? b.title : (l.bookTitle||'—');
+    return `<div class="list-item">
+      <div style="flex:1;${b?'cursor:pointer':''}" ${b?`onclick="navigate('book','${b.id}')"`:''}>
+        <div class="li-title">${escapeHtml(title)}</div>
+        <div class="li-sub">${l.type==='lent'?'أعرتِه لـ':'استعرتِه من'} ${escapeHtml(l.person||'—')} · ${l.date||'—'}${l.dueDate?(' · الرجوع المتوقع: '+l.dueDate):''}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span class="badge ${l.returned?'':(isOverdue(l)?'soil':'outline')}">${l.returned?('تم الرجوع'+(l.returnDate?(' — '+l.returnDate):'')):(isOverdue(l)?'متأخر':'لم يرجع بعد')}</span>
+        ${!l.returned?`<button class="btn sm ghost" onclick="toggleLoanReturned('${l.id}')">تحديد كأنه رجع</button>`:''}
+        <button class="btn sm ghost" onclick="openLoanForm('${l.type}','${l.id}')">${ICONS.edit}</button>
+      </div>
+    </div>`;
+  };
+  return `
+  <div class="page-head">
+    <div class="eyebrow">الإعارة والاستعارة</div>
+    <h1>الإعارة والاستعارة</h1>
+    <p>تتبعي الكتب اللي أعرتِها لغيرك، والكتب اللي استعرتِها من غيرك.</p>
+  </div>
+  <div class="card" style="margin-bottom:16px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <h3 style="margin:0">كتب أعرتِها لغيرك</h3>
+      <button class="btn sm primary" onclick="openLoanForm('lent')">${ICONS.plus} إعارة جديدة</button>
+    </div>
+    ${lent.length===0? `<p style="color:var(--ink-faint);font-size:13px">ما فيه كتب أعرتِها حاليًا.</p>` : lent.map(renderRow).join('')}
+  </div>
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <h3 style="margin:0">كتب استعرتِها من غيرك</h3>
+      <button class="btn sm primary" onclick="openLoanForm('borrowed')">${ICONS.plus} استعارة جديدة</button>
+    </div>
+    ${borrowed.length===0? `<p style="color:var(--ink-faint);font-size:13px">ما فيه كتب استعرتِها حاليًا.</p>` : borrowed.map(renderRow).join('')}
+  </div>
+  `;
+}
+function openLoanForm(type, loanId, presetBookId){
+  const l = loanId ? DB.loans.find(x=>x.id===loanId) : null;
+  const isLent = (l?l.type:type)==='lent';
+  const bookId = l?.bookId || presetBookId || '';
+  const bookOptions = DB.books.filter(b=>b.owned).map(b=>`<option value="${b.id}" ${bookId===b.id?'selected':''}>${escapeHtml(b.title)}</option>`).join('');
+  openModal(`
+    <div class="modal-head"><h2>${l? (isLent?'تعديل إعارة':'تعديل استعارة') : (isLent?'إعارة جديدة':'استعارة جديدة')}</h2><button class="modal-close" onclick="closeModal()">×</button></div>
+    <input type="hidden" id="lf-type" value="${isLent?'lent':'borrowed'}">
+    ${isLent?
+      `<div class="field"><label>الكتاب *</label><select id="lf-book"><option value="">اختاري كتابًا...</option>${bookOptions}</select></div>`
+      : `<div class="field"><label>اسم الكتاب *</label><input id="lf-book-title" value="${escapeHtml(l?.bookTitle||'')}" placeholder="اسم الكتاب اللي استعرتيه"></div>`
+    }
+    <div class="field"><label>${isLent?'أعرتِه لمن؟ *':'استعرتِه من من؟ *'}</label><input id="lf-person" value="${escapeHtml(l?.person||'')}"></div>
+    <div class="field-row">
+      <div class="field"><label>${isLent?'تاريخ الإعارة':'تاريخ الاستعارة'}</label><input type="date" id="lf-date" value="${l?.date||''}"></div>
+      <div class="field"><label>تاريخ الرجوع المتوقع (اختياري)</label><input type="date" id="lf-due" value="${l?.dueDate||''}"></div>
+    </div>
+    <div class="field checkbox-row"><input type="checkbox" id="lf-returned" ${l?.returned?'checked':''} onchange="document.getElementById('lf-return-date-wrap').style.display=this.checked?'block':'none'"><label>تم الرجوع بالفعل</label></div>
+    <div class="field" id="lf-return-date-wrap" style="display:${l?.returned?'block':'none'}"><label>تاريخ الرجوع</label><input type="date" id="lf-return-date" value="${l?.returnDate||''}"></div>
+    <div class="field"><label>ملاحظات</label><textarea id="lf-notes">${escapeHtml(l?.notes||'')}</textarea></div>
+    <div class="modal-actions">
+      ${l?`<button class="btn danger" onclick="deleteLoan('${l.id}')">${ICONS.trash} حذف</button>`:''}
+      <button class="btn" onclick="closeModal()">إلغاء</button>
+      <button class="btn primary" onclick="saveLoanForm('${l?.id||''}')">حفظ</button>
+    </div>
+  `);
+}
+function saveLoanForm(id){
+  const type = document.getElementById('lf-type').value;
+  const person = document.getElementById('lf-person').value.trim();
+  if(!person){ alert(type==='lent'?'اكتبي لمن أعرتِ الكتاب.':'اكتبي من من استعرتِ الكتاب.'); return; }
+  let bookId = '', bookTitle = '';
+  if(type==='lent'){
+    bookId = document.getElementById('lf-book').value;
+    if(!bookId){ alert('اختاري الكتاب.'); return; }
+  } else {
+    bookTitle = document.getElementById('lf-book-title').value.trim();
+    if(!bookTitle){ alert('اكتبي اسم الكتاب.'); return; }
+  }
+  const returned = document.getElementById('lf-returned').checked;
+  const data = {
+    type, bookId, bookTitle, person,
+    date: document.getElementById('lf-date').value,
+    dueDate: document.getElementById('lf-due').value,
+    returned,
+    returnDate: returned ? document.getElementById('lf-return-date').value : '',
+    notes: document.getElementById('lf-notes').value.trim(),
+  };
+  const prevBookId = id ? DB.loans.find(x=>x.id===id)?.bookId : null;
+  if(id){ Object.assign(DB.loans.find(x=>x.id===id), data); }
+  else{ DB.loans.push(Object.assign({id:uid(), createdAt:Date.now()}, data)); }
+  if(type==='lent') syncBookBorrowedFlag(bookId);
+  if(prevBookId && prevBookId!==bookId) syncBookBorrowedFlag(prevBookId);
+  saveDB(); closeModal(); render();
+}
+function toggleLoanReturned(id){
+  const l = DB.loans.find(x=>x.id===id);
+  if(!l) return;
+  l.returned = true;
+  l.returnDate = new Date().toISOString().slice(0,10);
+  if(l.type==='lent') syncBookBorrowedFlag(l.bookId);
+  saveDB(); render();
+}
+function deleteLoan(id){
+  if(!confirm('حذف هذا السجل؟')) return;
+  const l = DB.loans.find(x=>x.id===id);
+  const bookId = l?.bookId;
+  DB.loans = DB.loans.filter(x=>x.id!==id);
+  if(bookId) syncBookBorrowedFlag(bookId);
+  saveDB(); closeModal(); render();
 }
 function starsHtml(rating, interactive, onClickPrefix){
   let html = `<div class="stars">`;
@@ -1043,12 +1166,13 @@ function viewBook(bookId){
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;align-items:center">
         ${b.category?`<span class="tag">${escapeHtml(b.category)}</span>`:''}
         ${b.type?`<span class="badge">${b.type}</span>`:''}
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;align-items:center">
         <select class="status-quick" style="${statusQuickStyle(b.status||'لم أبدأ بعد')}" onchange="quickSetStatus('${b.id}', this.value)">
           ${STATUS_OPTIONS.map(s=>`<option value="${s}" ${(b.status||'لم أبدأ بعد')===s?'selected':''}>${s}</option>`).join('')}
         </select>
         ${bookRatingStars(b)}
-        ${b.owned?`<span class="badge soil">مملوك</span>`:''}
-        ${b.borrowed?`<span class="badge soil">معار</span>`:''}
+        ${activeLentLoan(b.id)?`<span class="badge soil">معار لـ ${escapeHtml(activeLentLoan(b.id).person)}</span>`:''}
       </div>
       <div style="margin-top:12px"><button class="btn sm" onclick="openBookForm('${b.id}')">${ICONS.edit} تعديل بيانات الكتاب</button></div>
     </div>
@@ -1077,6 +1201,7 @@ function renderBookTab(b){
 
 function bookTabInfo(b){
   const readings = bookReadings(b.id);
+  const loans = bookLoans(b.id);
   let extra = '';
   if(b.type==='رواية'){
     extra = `<div class="card" style="margin-top:14px"><h3>حقول الرواية</h3>
@@ -1106,6 +1231,11 @@ function bookTabInfo(b){
       <h3>سجل القراءة لهذا الكتاب</h3>
       ${readings.length? readings.map(r=>`<div class="list-item"><div><div class="li-title">${r.startDate||'—'} → ${r.endDate||'جارية'}</div><div class="li-sub">${r.medium||''} ${r.reread?' · إعادة قراءة':''}</div></div>${r.rating?starsHtml(r.rating,false):''}</div>`).join('') : `<p style="color:var(--ink-faint);font-size:13px">لم تُسجَّل قراءة لهذا الكتاب بعد.</p>`}
       <button class="btn sm" style="margin-top:8px" onclick="openReadingForm(null,'${b.id}')" >${ICONS.plus} تسجيل قراءة</button>
+    </div>
+    <div class="card" style="grid-column:1/-1">
+      <h3>سجل الإعارة لهذا الكتاب</h3>
+      ${loans.length? loans.map(l=>`<div class="list-item"><div><div class="li-title">أعرتِه لـ ${escapeHtml(l.person||'—')}</div><div class="li-sub">${l.date||'—'}${l.dueDate?(' · الرجوع المتوقع: '+l.dueDate):''}</div></div><span class="badge ${l.returned?'':(isOverdue(l)?'soil':'outline')}">${l.returned?'تم الرجوع':(isOverdue(l)?'متأخر':'لم يرجع بعد')}</span></div>`).join('') : `<p style="color:var(--ink-faint);font-size:13px">لم تُعيري هذا الكتاب لأحد بعد.</p>`}
+      <button class="btn sm" style="margin-top:8px" onclick="openLoanForm('lent', null, '${b.id}')">${ICONS.plus} تسجيل إعارة</button>
     </div>
   </div>
   ${extra}
