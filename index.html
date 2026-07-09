@@ -605,18 +605,20 @@ function renderView(){
 function viewDashboard(){
   const totalOwned = DB.books.filter(b=>b.owned).length;
   const finished = DB.readings.filter(r=>r.endDate);
-  const finishedBookIds = [...new Set(finished.map(r=>r.bookId))];
-  const totalRead = finishedBookIds.length;
-  const totalPages = finishedBookIds.reduce((sum,id)=>{ const b=getBook(id); return sum + (b && b.pages ? Number(b.pages) : 0); },0);
+  const finishedBookIds = new Set(finished.map(r=>r.bookId));
+  DB.books.forEach(b=>{ if(b.status==='قرأته') finishedBookIds.add(b.id); });
+  const finishedBookIdsArr = [...finishedBookIds];
+  const totalRead = finishedBookIdsArr.length;
+  const totalPages = finishedBookIdsArr.reduce((sum,id)=>{ const b=getBook(id); return sum + (b && b.pages ? Number(b.pages) : 0); },0);
 
   // توزيع حسب التصنيف
   const catCount = {};
-  finishedBookIds.forEach(id=>{ const b=getBook(id); if(b && b.category){ catCount[b.category]=(catCount[b.category]||0)+1; } });
+  finishedBookIdsArr.forEach(id=>{ const b=getBook(id); if(b && b.category){ catCount[b.category]=(catCount[b.category]||0)+1; } });
   const catList = Object.entries(catCount).sort((a,b)=>b[1]-a[1]).slice(0,6);
 
   // أكثر المؤلفين
   const authorCount = {};
-  finishedBookIds.forEach(id=>{ const b=getBook(id); if(b && b.author){ authorCount[b.author]=(authorCount[b.author]||0)+1; } });
+  finishedBookIdsArr.forEach(id=>{ const b=getBook(id); if(b && b.author){ authorCount[b.author]=(authorCount[b.author]||0)+1; } });
   const topAuthors = Object.entries(authorCount).sort((a,b)=>b[1]-a[1]).slice(0,5);
 
   // أكثر الأفكار تكرارًا (حسب الروابط)
@@ -654,7 +656,7 @@ function viewDashboard(){
     <div class="card stat-card"><div class="stat-num">${DB.ideas.length}</div><div class="stat-label">فكرة محفوظة</div></div>
   </div>
 
-  ${(finishedBookIds.length>0) ? `<div class="card" style="margin-bottom:18px">
+  ${(finishedBookIdsArr.length>0) ? `<div class="card" style="margin-bottom:18px">
     <h3 style="margin-bottom:12px">خريطة البستان — الروابط بين الأفكار والكتب</h3>
     ${renderGardenMap()}
   </div>` : ''}
