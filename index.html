@@ -208,8 +208,8 @@ input,select,textarea{font-family:inherit;font-size:14px;}
 .filters{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;}
 .filters select,.filters input{padding:7px 10px;border-radius:9px;border:1px solid var(--border);background:var(--surface);color:var(--ink);font-size:13px;}
 
-.status-quick{font-family:inherit;font-size:11.5px;font-weight:600;padding:4px 9px;border-radius:20px;cursor:pointer;}
-.status-quick:focus{outline:none;}
+.status-quick,.quick-select{font-family:inherit;font-size:11.5px;font-weight:600;padding:4px 9px;border-radius:20px;cursor:pointer;}
+.status-quick:focus,.quick-select:focus{outline:none;}
 
 .extra-details{margin:2px 0 14px;border:1px solid var(--border);border-radius:10px;padding:2px 12px;background:var(--surface-2);}
 .extra-details summary{cursor:pointer;padding:10px 2px;font-size:13px;font-weight:600;color:var(--ink-soft);list-style:none;}
@@ -795,23 +795,64 @@ function renderLibraryTable(books){
   if(books.length===0){
     return `<div class="empty"><h3>مكتبتك فارغة حتى الآن</h3><p>ابدئي بإضافة أول كتاب تملكينه.</p><button class="btn primary" onclick="openBookForm()">${ICONS.plus} إضافة كتاب</button></div>`;
   }
+  const allCategories = [...new Set(DB.books.filter(x=>x.owned).map(x=>x.category).filter(Boolean))];
   return `<table class="table"><thead><tr>
-    <th>الكتاب</th><th>المؤلف</th><th>التصنيف</th><th>الصفحات</th><th>الحالة</th><th>المكان</th><th>معار</th>
+    <th>الكتاب</th><th>التقييم</th><th>المؤلف</th><th>التصنيف</th><th>الحالة</th><th>معار</th>
   </tr></thead><tbody>
   ${books.map(b=>`<tr class="clickable" onclick="navigate('book','${b.id}')">
     <td>${escapeHtml(b.title)}</td>
+    <td onclick="event.stopPropagation()">${bookRatingStars(b)}</td>
     <td>${escapeHtml(b.author||'—')}</td>
-    <td>${b.category?`<span class="tag">${escapeHtml(b.category)}</span>`:'—'}</td>
-    <td>${b.pages||'—'}</td>
+    <td onclick="event.stopPropagation()">
+      <select class="quick-select" style="${categoryQuickStyle()}" onchange="quickSetCategory('${b.id}', this.value)">
+        <option value="" ${!b.category?'selected':''}>بدون تصنيف</option>
+        ${allCategories.map(c=>`<option value="${escapeHtml(c)}" ${b.category===c?'selected':''}>${escapeHtml(c)}</option>`).join('')}
+        <option value="__new__">+ تصنيف جديد</option>
+      </select>
+    </td>
     <td onclick="event.stopPropagation()">
       <select class="status-quick" style="${statusQuickStyle(b.status||'لم أبدأ بعد')}" onchange="quickSetStatus('${b.id}', this.value)">
         ${STATUS_OPTIONS.map(s=>`<option value="${s}" ${(b.status||'لم أبدأ بعد')===s?'selected':''}>${s}</option>`).join('')}
       </select>
     </td>
-    <td style="color:var(--ink-faint)">${escapeHtml(b.shelf||'—')}</td>
-    <td>${b.borrowed?`<span class="badge soil">معار</span>`:'—'}</td>
+    <td onclick="event.stopPropagation()">
+      <select class="quick-select" style="${borrowedQuickStyle(b.borrowed)}" onchange="quickSetBorrowed('${b.id}', this.value)">
+        <option value="no" ${!b.borrowed?'selected':''}>غير معار</option>
+        <option value="yes" ${b.borrowed?'selected':''}>معار</option>
+      </select>
+    </td>
   </tr>`).join('')}
   </tbody></table>`;
+}
+function categoryQuickStyle(){
+  return 'background:none;color:var(--ink-soft);border:1px solid var(--border);';
+}
+function borrowedQuickStyle(borrowed){
+  if(borrowed) return 'background:var(--soil-tint);color:var(--soil);border:1px solid transparent;';
+  return 'background:none;color:var(--ink-soft);border:1px solid var(--border);';
+}
+function quickSetCategory(bookId, value){
+  const b = getBook(bookId);
+  if(!b) return;
+  if(value==='__new__'){
+    const newCat = prompt('اكتب اسم التصنيف الجديد:', '');
+    if(newCat && newCat.trim()) b.category = newCat.trim();
+    saveDB();
+    if(currentView==='library'){ filterLibrary(); } else { render(); }
+    return;
+  }
+  b.category = value;
+  saveDB();
+  if(currentView==='library'){ filterLibrary(); } else { render(); }
+}
+function quickSetBorrowed(bookId, value){
+  if(value==='yes'){
+    openLoanForm('lent', null, bookId);
+  } else {
+    const loan = activeLentLoan(bookId);
+    if(loan) toggleLoanReturned(loan.id);
+  }
+  if(currentView==='library'){ filterLibrary(); } else { render(); }
 }
 function quickSetStatus(bookId, status){
   const b = getBook(bookId);
@@ -833,7 +874,7 @@ function quickSetRating(bookId, n){
   if(!b) return;
   b.rating = n;
   saveDB();
-  render();
+  if(currentView==='library'){ filterLibrary(); } else { render(); }
 }
 function filterLibrary(){
   const cat = document.getElementById('f-cat').value;
