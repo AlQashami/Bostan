@@ -1016,9 +1016,11 @@ function viewLoans(){
         <div class="li-title">${escapeHtml(title)}</div>
         <div class="li-sub">${l.type==='lent'?'أعرتِه لـ':'استعرتِه من'} ${escapeHtml(l.person||'—')} · ${l.date||'—'}${l.dueDate?(' · الرجوع المتوقع: '+l.dueDate):''}</div>
       </div>
-      <div style="display:flex;align-items:center;gap:8px">
-        <span class="badge ${l.returned?'':(isOverdue(l)?'soil':'outline')}">${l.returned?('تم الرجوع'+(l.returnDate?(' — '+l.returnDate):'')):(isOverdue(l)?'متأخر':'لم يرجع بعد')}</span>
-        ${!l.returned?`<button class="btn sm ghost" onclick="toggleLoanReturned('${l.id}')">تحديد كأنه رجع</button>`:''}
+      <div style="display:flex;align-items:center;gap:8px" onclick="event.stopPropagation()">
+        <select class="quick-select" style="${loanQuickStyle(l)}" onchange="quickSetLoanReturned('${l.id}', this.value)">
+          <option value="no" ${!l.returned?'selected':''}>${isOverdue(l)?'متأخر':'لم يرجع بعد'}</option>
+          <option value="yes" ${l.returned?'selected':''}>تم الرجوع${l.returnDate?(' — '+l.returnDate):''}</option>
+        </select>
         <button class="btn sm ghost" onclick="openLoanForm('${l.type}','${l.id}')">${ICONS.edit}</button>
       </div>
     </div>`;
@@ -1107,6 +1109,23 @@ function toggleLoanReturned(id){
   l.returnDate = new Date().toISOString().slice(0,10);
   if(l.type==='lent') syncBookBorrowedFlag(l.bookId);
   saveDB(); render();
+}
+function loanQuickStyle(l){
+  if(l.returned) return 'background:var(--primary-tint);color:var(--primary-dark);border:1px solid transparent;';
+  if(isOverdue(l)) return 'background:var(--soil-tint);color:var(--soil);border:1px solid transparent;';
+  return 'background:none;color:var(--ink-soft);border:1px solid var(--border);';
+}
+function quickSetLoanReturned(id, value){
+  const l = DB.loans.find(x=>x.id===id);
+  if(!l) return;
+  if(value==='yes'){
+    toggleLoanReturned(id);
+  } else {
+    l.returned = false;
+    l.returnDate = '';
+    if(l.type==='lent') syncBookBorrowedFlag(l.bookId);
+    saveDB(); render();
+  }
 }
 function deleteLoan(id){
   if(!confirm('حذف هذا السجل؟')) return;
