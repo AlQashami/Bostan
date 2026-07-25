@@ -506,6 +506,7 @@ function renderSidebar(){
       <input type="file" id="import-input" accept="application/json" style="display:none" onchange="importData(event)">
       <button class="footer-btn" onclick="openExcelImport()">${ICONS.upload}<span>استيراد من إكسل / نديم</span></button>
       <input type="file" id="excel-import-input" accept=".xlsx,.xls,.csv" style="display:none" onchange="handleExcelFile(event)">
+      ${FIREBASE_ENABLED?`<button class="footer-btn" onclick="resetPassword()"><span>إعادة تعيين كلمة المرور</span></button>`:''}
       ${FIREBASE_ENABLED?`<button class="footer-btn" onclick="logout()"><span>تسجيل الخروج${currentUser?(' — '+escapeHtml(currentUser.email)):''}</span></button>`:''}
     </div>
   </aside>`;
@@ -2096,6 +2097,7 @@ function renderLoginScreen(err){
       <div class="login-toggle" onclick="authMode = authMode==='login'?'signup':'login'; renderLoginScreen();">
         ${authMode==='login'?'ليس لدي حساب — إنشاء حساب جديد':'لدي حساب بالفعل — تسجيل الدخول'}
       </div>
+      ${authMode==='login'?`<div class="login-toggle" onclick="forgotPassword()">نسيت كلمة المرور؟</div>`:''}
     </div>
   </div>`;
 }
@@ -2107,6 +2109,13 @@ function submitAuth(){
     ? fbAuth.signInWithEmailAndPassword(email, password)
     : fbAuth.createUserWithEmailAndPassword(email, password);
   action.catch(function(e){ renderLoginScreen(translateAuthError(e.code)); });
+}
+function forgotPassword(){
+  const email = document.getElementById('auth-email').value.trim();
+  if(!email){ renderLoginScreen('اكتبي بريدك الإلكتروني أولًا ثم اضغطي "نسيت كلمة المرور؟".'); return; }
+  fbAuth.sendPasswordResetEmail(email)
+    .then(function(){ alert('تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك الإلكتروني.'); })
+    .catch(function(e){ renderLoginScreen(translateAuthError(e.code)); });
 }
 function translateAuthError(code){
   const map = {
@@ -2122,6 +2131,13 @@ function translateAuthError(code){
 function logout(){
   if(!confirm('تسجيل الخروج؟')) return;
   fbAuth.signOut();
+}
+function resetPassword(){
+  if(!currentUser || !currentUser.email) return;
+  if(!confirm(`إرسال رابط إعادة تعيين كلمة المرور إلى ${currentUser.email}؟`)) return;
+  fbAuth.sendPasswordResetEmail(currentUser.email)
+    .then(function(){ alert('تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك الإلكتروني.'); })
+    .catch(function(e){ alert(translateAuthError(e.code)); });
 }
 
 // ============ استيراد من إكسل / CSV (المكتبة أو نديم) ============
