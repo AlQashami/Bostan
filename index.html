@@ -328,6 +328,15 @@ if(FIREBASE_ENABLED){
   firebase.initializeApp(firebaseConfig);
   fbAuth = firebase.auth();
   fbDb = firebase.firestore();
+  fbDb.enablePersistence({synchronizeTabs:true}).catch(function(e){
+    console.warn('تعذر تفعيل التخزين المحلي لـ Firestore (قد يكون مفعّلاً في تبويب آخر):', e.code);
+  });
+}
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('./sw.js').catch(function(e){ console.error('تعذر تسجيل service worker', e); });
+  });
 }
 
 let DB = null;
@@ -1217,15 +1226,18 @@ function openReadingForm(entryId, presetBookId){
   tempRating = r?.rating || 0;
   const isManual = r ? (!r.bookId && !!r.manualTitle) : false;
   const selectedBookId = r?.bookId || presetBookId || '';
-  const bookOptions = DB.books.map(b=>`<option value="${b.id}" ${selectedBookId===b.id?'selected':''}>${escapeHtml(b.title)}</option>`).join('');
+  const selectedBook = selectedBookId ? getBook(selectedBookId) : null;
   openModal(`
     <div class="modal-head"><h2>${r?'تعديل القراءة':'قراءة جديدة'}</h2><button class="modal-close" onclick="closeModal()">×</button></div>
     <div class="field"><label>الكتاب *</label>
-      <select id="rf-book" onchange="onReadingBookChange(this.value)">
-        <option value="">اختاري كتابًا من قائمتك...</option>
-        ${bookOptions}
-        <option value="_manual" ${isManual?'selected':''}>+ كتاب غير موجود في قائمتي (اكتبي اسمه هنا)</option>
-      </select>
+      <div class="search-wrap" style="max-width:none">
+        <input class="search-input" id="rf-book-search" autocomplete="off" placeholder="ابحثي عن كتاب بالاسم أو المؤلف..."
+          value="${escapeHtml(selectedBook?selectedBook.title:'')}"
+          oninput="filterReadingBookOptions(this.value)" onfocus="filterReadingBookOptions(this.value)"
+          onblur="setTimeout(function(){ var b=document.getElementById('rf-book-results'); if(b) b.style.display='none'; }, 150)">
+        <input type="hidden" id="rf-book" value="${selectedBookId}">
+        <div id="rf-book-results" class="search-results" style="display:none"></div>
+      </div>
       <div id="rf-manual-fields" style="display:${isManual?'block':'none'};margin-top:8px">
         <input id="rf-manual-title" placeholder="اسم الكتاب" value="${escapeHtml(r?.manualTitle||'')}" style="margin-bottom:6px">
         <input id="rf-manual-author" placeholder="المؤلف (اختياري)" value="${escapeHtml(r?.manualAuthor||'')}">
@@ -1254,8 +1266,29 @@ function openReadingForm(entryId, presetBookId){
     </div>
   `);
 }
-function onReadingBookChange(val){
-  document.getElementById('rf-manual-fields').style.display = (val==='_manual') ? 'block' : 'none';
+function filterReadingBookOptions(term){
+  const box = document.getElementById('rf-book-results');
+  const t = (term||'').trim().toLowerCase();
+  const matches = t ? DB.books.filter(b=>b.title.toLowerCase().includes(t) || (b.author||'').toLowerCase().includes(t)) : DB.books;
+  let html = matches.slice(0,50).map(b=>`<div class="sr-item" style="cursor:pointer" onmousedown="selectReadingBook('${b.id}')">${escapeHtml(b.title)}${b.author?` <span style="color:var(--ink-faint)">— ${escapeHtml(b.author)}</span>`:''}</div>`).join('');
+  if(!matches.length) html += `<div class="sr-empty">لا توجد نتائج مطابقة</div>`;
+  html += `<div class="sr-item" style="cursor:pointer;color:var(--primary-dark)" onmousedown="selectReadingBookManual()">+ كتاب غير موجود في قائمتي (اكتبي اسمه يدويًا)</div>`;
+  box.innerHTML = html;
+  box.style.display = 'block';
+}
+function selectReadingBook(id){
+  const b = getBook(id);
+  document.getElementById('rf-book').value = id;
+  document.getElementById('rf-book-search').value = b ? b.title : '';
+  document.getElementById('rf-book-results').style.display = 'none';
+  document.getElementById('rf-manual-fields').style.display = 'none';
+}
+function selectReadingBookManual(){
+  document.getElementById('rf-book').value = '_manual';
+  document.getElementById('rf-book-search').value = '';
+  document.getElementById('rf-book-results').style.display = 'none';
+  document.getElementById('rf-manual-fields').style.display = 'block';
+  document.getElementById('rf-manual-title').focus();
 }
 function setTempRating(n){ tempRating = n; document.getElementById('rf-stars').innerHTML = starsHtml(tempRating,true,'setTempRating'); }
 function saveReadingForm(id){
