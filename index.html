@@ -380,13 +380,12 @@ const NAV = [
   {group:'القراءة', items:[
     {id:'library', label:'فهرس المكتبة', icon:'library'},
     {id:'wishlist', label:'كتب أوّد شراءها', icon:'wishlist'},
-    {id:'reread', label:'كتب أبي أعيدها', icon:'review'},
+    {id:'reread', label:'كتب أرغب في إعادتها', icon:'review'},
     {id:'log', label:'سجل القراءة', icon:'log'},
     {id:'loans', label:'الإعارة والاستعارة', icon:'loan'},
     {id:'calendar', label:'التقويم', icon:'calendar'},
   ]},
   {group:'المعرفة', items:[
-    {id:'ideas', label:'قاعدة المعرفة', icon:'idea'},
     {id:'quotes', label:'الاقتباسات', icon:'quote'},
     {id:'vocab', label:'المفردات', icon:'vocab'},
     {id:'projects', label:'المشاريع', icon:'project'},
@@ -457,7 +456,6 @@ function saveDB(){
 }
 
 function getBook(id){ return DB.books.find(b=>b.id===id); }
-function getIdea(id){ return DB.ideas.find(i=>i.id===id); }
 function getProject(id){ return DB.projects.find(p=>p.id===id); }
 function getTrait(id){ return DB.identity.find(t=>t.id===id); }
 function bookReadings(bookId){ return DB.readings.filter(r=>r.bookId===bookId); }
@@ -528,7 +526,7 @@ function renderTopbar(){
   return `<header class="topbar">
     <button class="mobile-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
     <div class="search-wrap">
-      <input class="search-input" id="global-search" placeholder="ابحثي في الكتب، الأفكار، الاقتباسات..." oninput="onGlobalSearch(this.value)" onfocus="onGlobalSearch(this.value)">
+      <input class="search-input" id="global-search" placeholder="ابحثي في الكتب، الاقتباسات..." oninput="onGlobalSearch(this.value)" onfocus="onGlobalSearch(this.value)">
       <span class="search-icon">${ICONS.search}</span>
       <div id="search-results-box"></div>
     </div>
@@ -583,7 +581,6 @@ function openQuickAdd(){
     <div class="grid cols-2">
       <button class="btn" style="justify-content:flex-start;padding:16px" onclick="closeModal(); openBookForm();">${ICONS.library}<span>كتاب جديد</span></button>
       <button class="btn" style="justify-content:flex-start;padding:16px" onclick="closeModal(); openReadingForm();">${ICONS.log}<span>قراءة جديدة في السجل</span></button>
-      <button class="btn" style="justify-content:flex-start;padding:16px" onclick="closeModal(); openIdeaForm();">${ICONS.idea}<span>فكرة جديدة</span></button>
       <button class="btn" style="justify-content:flex-start;padding:16px" onclick="closeModal(); openQuoteForm();">${ICONS.quote}<span>اقتباس جديد</span></button>
       <button class="btn" style="justify-content:flex-start;padding:16px" onclick="closeModal(); openVocabForm();">${ICONS.vocab}<span>مفردة جديدة</span></button>
       <button class="btn" style="justify-content:flex-start;padding:16px" onclick="closeModal(); openProjectForm();">${ICONS.project}<span>مشروع جديد</span></button>
@@ -609,17 +606,17 @@ function openSuggestionWizard(presetPool){
   if(presetPool) return wizardStepType();
   openModal(`
     <div class="modal-head"><h2>اقترحي لي كتاب</h2><button class="modal-close" onclick="closeModal()">×</button></div>
-    <p style="color:var(--ink-faint);font-size:13px;margin-bottom:14px">من وين نختار؟</p>
+    <p style="color:var(--ink-faint);font-size:13px;margin-bottom:14px">من أين نختار؟</p>
     <div class="grid cols-2" style="gap:10px">
-      <button class="btn" style="padding:14px" onclick="wizardState.pool='new'; wizardStepType()">كتاب جديد ما قريتيه</button>
-      <button class="btn" style="padding:14px" onclick="wizardState.pool='reread'; wizardStepType()">من كتب أبي أعيدها</button>
+      <button class="btn" style="padding:14px" onclick="wizardState.pool='new'; wizardStepType()">كتاب جديد لم تقرئيه</button>
+      <button class="btn" style="padding:14px" onclick="wizardState.pool='reread'; wizardStepType()">من الكتب التي أرغب في إعادتها</button>
     </div>
   `);
 }
 function wizardStepType(){
   openModal(`
     <div class="modal-head"><h2>اقترحي لي كتاب</h2><button class="modal-close" onclick="closeModal()">×</button></div>
-    <p style="color:var(--ink-faint);font-size:13px;margin-bottom:14px">وش يناسب مزاجك الحين؟</p>
+    <p style="color:var(--ink-faint);font-size:13px;margin-bottom:14px">ما الذي يناسب مزاجك الآن؟</p>
     <div class="grid cols-2" style="gap:10px">
       <button class="btn" style="padding:14px" onclick="wizardState.type='تطوير ذات'; wizardStepLength()">علمي / تطوير ذات</button>
       <button class="btn" style="padding:14px" onclick="wizardState.type='رواية'; wizardStepLength()">رواية / أدب</button>
@@ -631,10 +628,10 @@ function wizardStepType(){
 function wizardStepLength(){
   openModal(`
     <div class="modal-head"><h2>اقترحي لي كتاب</h2><button class="modal-close" onclick="closeModal()">×</button></div>
-    <p style="color:var(--ink-faint);font-size:13px;margin-bottom:14px">تحبين كتاب قصير ولا ما يهمك؟</p>
+    <p style="color:var(--ink-faint);font-size:13px;margin-bottom:14px">هل تفضّلين كتابًا قصيرًا أم لا فرق لديكِ؟</p>
     <div class="grid cols-2" style="gap:10px">
       <button class="btn" style="padding:14px" onclick="wizardState.short=true; runSuggestion()">قصير (أقل من ٢٠٠ صفحة)</button>
-      <button class="btn" style="padding:14px" onclick="wizardState.short=false; runSuggestion()">ما يفرق</button>
+      <button class="btn" style="padding:14px" onclick="wizardState.short=false; runSuggestion()">لا فرق</button>
     </div>
   `);
 }
@@ -652,8 +649,8 @@ function runSuggestion(){
 
   if(candidates.length===0){
     openModal(`
-      <div class="modal-head"><h2>ما فيه كتب مطابقة</h2><button class="modal-close" onclick="closeModal()">×</button></div>
-      <p>ما لقيت كتاب يطابق اختياراتك. جربي تخففين الشروط.</p>
+      <div class="modal-head"><h2>لا توجد كتب مطابقة</h2><button class="modal-close" onclick="closeModal()">×</button></div>
+      <p>لم أجد كتابًا يطابق اختياراتك. حاولي تخفيف الشروط.</p>
       <div class="modal-actions"><button class="btn primary" onclick="openSuggestionWizard(wizardState.pool)">إعادة المحاولة</button></div>
     `);
     return;
@@ -687,8 +684,6 @@ function renderView(){
     case 'wishlist': return viewWishlist();
     case 'reread': return viewRereadList();
     case 'book': return viewBook(currentParam);
-    case 'ideas': return viewIdeas();
-    case 'idea': return viewIdea(currentParam);
     case 'projects': return viewProjects();
     case 'project': return viewProject(currentParam);
     case 'identity': return viewIdentity();
@@ -729,11 +724,6 @@ function viewDashboard(){
   });
   const topAuthors = Object.entries(authorCount).sort((a,b)=>b[1]-a[1]).slice(0,5);
 
-  // أكثر الأفكار تكرارًا (حسب الروابط)
-  const ideaCount = {};
-  DB.books.forEach(b=>{ (b.links?.ideas||[]).forEach(iid=>{ ideaCount[iid]=(ideaCount[iid]||0)+1; }); });
-  const topIdeas = Object.entries(ideaCount).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([iid,c])=>({idea:getIdea(iid), count:c})).filter(x=>x.idea);
-
   // أكثر الكلمات الجديدة (الأحدث)
   const recentVocab = [...DB.vocab].sort((a,b)=> (b.createdAt||0)-(a.createdAt||0)).slice(0,5);
 
@@ -761,21 +751,19 @@ function viewDashboard(){
     <div class="card stat-card"><div class="stat-num">${totalRead}</div><div class="stat-label">كتاب مقروء</div></div>
     <div class="card stat-card"><div class="stat-num">${totalOwned}</div><div class="stat-label">كتاب في المكتبة</div></div>
     <div class="card stat-card"><div class="stat-num">${totalPages.toLocaleString('ar')}</div><div class="stat-label">صفحة مقروءة</div></div>
-    <div class="card stat-card"><div class="stat-num">${DB.ideas.length}</div><div class="stat-label">فكرة محفوظة</div></div>
+    <div class="card stat-card"><div class="stat-num">${DB.books.filter(b=>b.status==='أقرأ الآن').length}</div><div class="stat-label">تقرئينه الآن</div></div>
   </div>
 
-  <div class="card" style="margin-bottom:18px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
-    <div>
-      <h3 style="margin-bottom:4px">مو عارفة وش تقرين؟</h3>
-      <p style="color:var(--ink-faint);font-size:13px;margin:0">خليني أقترح عليكِ كتابًا بناءً على مزاجك الحالي.</p>
+  <div class="card" style="margin-bottom:18px">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:${DB.books.some(b=>b.status==='أقرأ الآن')?'14px':'0'}">
+      <div>
+        <h3 style="margin-bottom:4px">لا تعرفين ماذا تقرئين؟</h3>
+        <p style="color:var(--ink-faint);font-size:13px;margin:0">دعيني أقترح عليكِ كتابًا بناءً على مزاجك الحالي.</p>
+      </div>
+      <button class="btn primary" onclick="openSuggestionWizard()">${ICONS.review} اقترحي لي كتاب</button>
     </div>
-    <button class="btn primary" onclick="openSuggestionWizard()">${ICONS.review} اقترحي لي كتاب</button>
+    ${renderCurrentlyReading()}
   </div>
-
-  ${(finishedBookIdsArr.length>0) ? `<div class="card" style="margin-bottom:18px">
-    <h3 style="margin-bottom:12px">خريطة البستان — الروابط بين الأفكار والكتب</h3>
-    ${renderGardenMap()}
-  </div>` : ''}
 
   <div class="grid cols-2">
     <div class="card">
@@ -790,12 +778,12 @@ function viewDashboard(){
 
   <div class="grid cols-2" style="margin-top:14px">
     <div class="card">
-      <h3>أكثر الأفكار تكرارًا</h3>
-      ${topIdeas.length? topIdeas.map(x=>`<div class="list-item" style="cursor:pointer" onclick="navigate('idea','${x.idea.id}')"><span class="li-title">${escapeHtml(x.idea.name)}</span><span class="badge">${x.count} كتاب</span></div>`).join('') : `<p style="color:var(--ink-faint);font-size:13px">اربطي كتبك بأفكار لتظهر هنا.</p>`}
-    </div>
-    <div class="card">
       <h3>أحدث المفردات</h3>
       ${recentVocab.length? recentVocab.map(v=>`<div class="list-item"><span class="li-title">${escapeHtml(v.word)}</span><span class="li-sub">${escapeHtml(v.meaning||'')}</span></div>`).join('') : `<p style="color:var(--ink-faint);font-size:13px">لم تُضاف مفردات بعد.</p>`}
+    </div>
+    <div class="card">
+      <h3>من اقتباساتك الأخيرة</h3>
+      ${recentQuotes.length? recentQuotes.map(q=>quoteCardHtml(q)).join('') : `<p style="color:var(--ink-faint);font-size:13px">لم تُحفظ اقتباسات بعد.</p>`}
     </div>
   </div>
 
@@ -808,11 +796,6 @@ function viewDashboard(){
       </div>`).join('')}
     </div>
   </div>
-
-  ${recentQuotes.length? `<div class="card" style="margin-top:14px">
-    <h3>من اقتباساتك الأخيرة</h3>
-    ${recentQuotes.map(q=>quoteCardHtml(q)).join('')}
-  </div>` : ''}
   `;
 }
 
@@ -824,38 +807,37 @@ function barRow(label,count,max){
   </div>`;
 }
 
-function renderGardenMap(){
-  // خريطة بسيطة: جذع مركزي وفروع = الأفكار الأكثر ارتباطًا، أوراق = الكتب
-  const ideaLinks = {};
-  DB.books.forEach(b=>{ (b.links?.ideas||[]).forEach(iid=>{ (ideaLinks[iid] = ideaLinks[iid]||[]).push(b.id); }); });
-  const entries = Object.entries(ideaLinks).sort((a,b)=>b[1].length-a[1].length).slice(0,6);
-  if(entries.length===0){
-    return `<p style="color:var(--ink-faint);font-size:13px">اربطي الكتب بأفكار في قاعدة المعرفة، وستنمو خريطة بستانك هنا تدريجيًا.</p>`;
-  }
-  const W=760,H=260, cx=W/2, cyBase=H-20;
-  let svg = `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto" xmlns="http://www.w3.org/2000/svg">`;
-  svg += `<line x1="${cx}" y1="${cyBase}" x2="${cx}" y2="${cyBase-70}" stroke="var(--soil)" stroke-width="5" stroke-linecap="round"/>`;
-  const n = entries.length;
-  entries.forEach(([iid,bookIds],i)=>{
-    const idea = getIdea(iid); if(!idea) return;
-    const angle = (-70 + (140/(n-1||1))*i) * Math.PI/180;
-    const branchLen = 90;
-    const bx = cx + Math.sin(angle)*branchLen;
-    const by = (cyBase-70) - Math.cos(angle)*branchLen;
-    svg += `<line x1="${cx}" y1="${cyBase-70}" x2="${bx}" y2="${by}" stroke="var(--primary)" stroke-width="3" stroke-linecap="round"/>`;
-    svg += `<circle cx="${bx}" cy="${by}" r="${16+Math.min(bookIds.length*2,14)}" fill="var(--primary-tint)" stroke="var(--primary)" stroke-width="1.5"/>`;
-    svg += `<text x="${bx}" y="${by+4}" text-anchor="middle" font-size="10" fill="var(--primary-dark)" font-family="IBM Plex Sans Arabic">${escapeHtml(idea.name.slice(0,10))}</text>`;
-    // leaves for books
-    bookIds.slice(0,4).forEach((bid,j)=>{
-      const leafAngle = angle + (j-1.5)*0.28;
-      const lx = bx + Math.sin(leafAngle)*34;
-      const ly = by - Math.cos(leafAngle)*34;
-      svg += `<circle cx="${lx}" cy="${ly}" r="4.5" fill="var(--gold)" opacity="0.85"/>`;
-    });
-  });
-  svg += `</svg>`;
-  return svg;
+function renderCurrentlyReading(){
+  const reading = DB.books.filter(b=>b.status==='أقرأ الآن');
+  if(reading.length===0) return '';
+  return `<div style="display:flex;flex-direction:column;gap:12px">
+    ${reading.map(b=>{
+      const pages = Number(b.pages)||0;
+      const cur = Math.min(Number(b.currentPage)||0, pages||Infinity);
+      const pct = pages>0 ? Math.max(0,Math.min(100,Math.round((cur/pages)*100))) : 0;
+      return `<div>
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px">
+          <div style="cursor:pointer" onclick="navigate('book','${b.id}')"><span class="li-title">${escapeHtml(b.title)}</span><span class="li-sub"> — ${escapeHtml(b.author||'')}</span></div>
+          ${pages>0? `<div style="display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--ink-faint)">
+            <input type="number" min="0" max="${pages}" value="${cur}" style="width:64px;padding:4px 6px;border:1px solid var(--border);border-radius:6px" onchange="updateCurrentPage('${b.id}', this.value)">
+            <span>من ${pages}</span>
+          </div>` : `<button class="btn sm ghost" onclick="navigate('book','${b.id}')">تسجيل عدد الصفحات</button>`}
+        </div>
+        ${pages>0? `<div style="height:7px;background:var(--surface-2);border-radius:6px;overflow:hidden"><div style="height:100%;width:${pct}%;background:var(--gold);border-radius:6px"></div></div>` : ''}
+      </div>`;
+    }).join('')}
+  </div>`;
 }
+function updateCurrentPage(bookId, value){
+  const b = getBook(bookId); if(!b) return;
+  const pages = Number(b.pages)||0;
+  let n = Math.max(0, Number(value)||0);
+  if(pages>0) n = Math.min(n, pages);
+  b.currentPage = n;
+  saveDB();
+  document.getElementById('view-root').innerHTML = renderView();
+}
+
 
 // ============ فهرس المكتبة ============
 let currentLibrarySort = 'created-desc';
@@ -911,7 +893,7 @@ function renderLibraryTable(books){
   ${books.map(b=>`<tr class="clickable" onclick="navigate('book','${b.id}')">
     <td>${escapeHtml(b.title)}</td>
     <td onclick="event.stopPropagation()">${bookRatingStars(b)}</td>
-    <td>${escapeHtml(b.author||'—')}</td>
+    <td>${b.author? `<span data-author="${escapeHtml(b.author)}" onclick="event.stopPropagation(); filterByAuthor(this.dataset.author)" style="cursor:pointer;text-decoration:underline dotted;text-underline-offset:3px" title="عرض كل كتب هذا المؤلف">${escapeHtml(b.author)}</span>` : '—'}</td>
     <td onclick="event.stopPropagation()">
       <select class="quick-select" style="${categoryQuickStyle()}" onchange="quickSetCategory('${b.id}', this.value)">
         <option value="" ${!b.category?'selected':''}>بدون تصنيف</option>
@@ -999,6 +981,11 @@ function filterLibrary(){
   books = sortBooksBy(books, currentLibrarySort);
   document.getElementById('library-table').innerHTML = renderLibraryTable(books);
 }
+function filterByAuthor(author){
+  if(currentView!=='library') navigate('library');
+  document.getElementById('f-text').value = author;
+  filterLibrary();
+}
 
 // ============ نموذج إضافة/تعديل كتاب ============
 function openBookForm(bookId){
@@ -1016,7 +1003,7 @@ function openBookForm(bookId){
       <div class="field"><label>حالة القراءة</label><select id="bf-status">${STATUS_OPTIONS.map(s=>`<option ${b?.status===s?'selected':''}>${s}</option>`).join('')}</select></div>
     </div>
     <div class="field checkbox-row" style="margin-top:4px"><input type="checkbox" id="bf-owned" ${(b?.owned!==false)?'checked':''}><label>هذا الكتاب موجود في مكتبتي فعليًا</label></div>
-    <div class="field checkbox-row"><input type="checkbox" id="bf-reread" ${b?.wantsReread?'checked':''}><label>أبي أعيد قراءة هذا الكتاب مستقبلًا</label></div>
+    <div class="field checkbox-row"><input type="checkbox" id="bf-reread" ${b?.wantsReread?'checked':''}><label>أرغب في إعادة قراءة هذا الكتاب مستقبلًا</label></div>
     <details class="extra-details">
       <summary>معلومات إضافية</summary>
       <div class="field"><label>عدد الصفحات (اختياري)</label><input id="bf-pages" type="number" value="${b?.pages||''}"></div>
@@ -1140,21 +1127,21 @@ function viewLoans(){
   <div class="page-head">
     <div class="eyebrow">الإعارة والاستعارة</div>
     <h1>الإعارة والاستعارة</h1>
-    <p>تتبعي الكتب اللي أعرتِها لغيرك، والكتب اللي استعرتِها من غيرك.</p>
+    <p>تتبعي الكتب التي أعرتِها لغيرك، والكتب التي استعرتِها من غيرك.</p>
   </div>
   <div class="card" style="margin-bottom:16px">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
       <h3 style="margin:0">كتب أعرتِها لغيرك</h3>
       <button class="btn sm primary" onclick="openLoanForm('lent')">${ICONS.plus} إعارة جديدة</button>
     </div>
-    ${lent.length===0? `<p style="color:var(--ink-faint);font-size:13px">ما فيه كتب أعرتِها حاليًا.</p>` : lent.map(renderRow).join('')}
+    ${lent.length===0? `<p style="color:var(--ink-faint);font-size:13px">لا توجد كتب أعرتِها حاليًا.</p>` : lent.map(renderRow).join('')}
   </div>
   <div class="card">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
       <h3 style="margin:0">كتب استعرتِها من غيرك</h3>
       <button class="btn sm primary" onclick="openLoanForm('borrowed')">${ICONS.plus} استعارة جديدة</button>
     </div>
-    ${borrowed.length===0? `<p style="color:var(--ink-faint);font-size:13px">ما فيه كتب استعرتِها حاليًا.</p>` : borrowed.map(renderRow).join('')}
+    ${borrowed.length===0? `<p style="color:var(--ink-faint);font-size:13px">لا توجد كتب استعرتِها حاليًا.</p>` : borrowed.map(renderRow).join('')}
   </div>
   `;
 }
@@ -1168,9 +1155,9 @@ function openLoanForm(type, loanId, presetBookId){
     <input type="hidden" id="lf-type" value="${isLent?'lent':'borrowed'}">
     ${isLent?
       `<div class="field"><label>الكتاب *</label><select id="lf-book"><option value="">اختاري كتابًا...</option>${bookOptions}</select></div>`
-      : `<div class="field"><label>اسم الكتاب *</label><input id="lf-book-title" value="${escapeHtml(l?.bookTitle||'')}" placeholder="اسم الكتاب اللي استعرتيه"></div>`
+      : `<div class="field"><label>اسم الكتاب *</label><input id="lf-book-title" value="${escapeHtml(l?.bookTitle||'')}" placeholder="اسم الكتاب الذي استعرتِه"></div>`
     }
-    <div class="field"><label>${isLent?'أعرتِه لمن؟ *':'استعرتِه من من؟ *'}</label><input id="lf-person" value="${escapeHtml(l?.person||'')}"></div>
+    <div class="field"><label>${isLent?'أعرتِه لمن؟ *':'ممن استعرتِه؟ *'}</label><input id="lf-person" value="${escapeHtml(l?.person||'')}"></div>
     <div class="field-row">
       <div class="field"><label>${isLent?'تاريخ الإعارة':'تاريخ الاستعارة'}</label><input type="date" id="lf-date" value="${l?.date||''}"></div>
       <div class="field"><label>تاريخ الرجوع المتوقع (اختياري)</label><input type="date" id="lf-due" value="${l?.dueDate||''}"></div>
@@ -1188,7 +1175,7 @@ function openLoanForm(type, loanId, presetBookId){
 function saveLoanForm(id){
   const type = document.getElementById('lf-type').value;
   const person = document.getElementById('lf-person').value.trim();
-  if(!person){ alert(type==='lent'?'اكتبي لمن أعرتِ الكتاب.':'اكتبي من من استعرتِ الكتاب.'); return; }
+  if(!person){ alert(type==='lent'?'اكتبي لمن أعرتِ الكتاب.':'اكتبي ممن استعرتِ الكتاب.'); return; }
   let bookId = '', bookTitle = '';
   if(type==='lent'){
     bookId = document.getElementById('lf-book').value;
@@ -1254,14 +1241,14 @@ function viewWishlist(){
   <div class="page-head">
     <div class="eyebrow">قائمة الشراء</div>
     <h1>كتب أوّد شراءها</h1>
-    <p>اكتبي أسماء الكتب اللي تبين تشترينها، ولما تشترين كتاب حطي علامة صح جنبه.</p>
+    <p>اكتبي أسماء الكتب التي ترغبين في شرائها، وعند شراء كتاب ضعي علامة صح بجانبه.</p>
   </div>
   <div class="filters">
     <input id="wl-new-title" placeholder="اسم كتاب جديد..." onkeydown="if(event.key==='Enter') addWishlistItem()" style="flex:1">
     <button class="btn primary" onclick="addWishlistItem()">${ICONS.plus} إضافة</button>
   </div>
   <div class="card">
-    ${items.length===0 ? `<p style="color:var(--ink-faint);font-size:13px">ما فيه كتب بالقائمة حاليًا.</p>` : items.map(item=>`
+    ${items.length===0 ? `<p style="color:var(--ink-faint);font-size:13px">لا توجد كتب في القائمة حاليًا.</p>` : items.map(item=>`
       <div class="list-item">
         <div style="flex:1;display:flex;align-items:center;gap:10px">
           <input type="checkbox" onchange="markWishlistBought('${item.id}')">
@@ -1290,7 +1277,7 @@ function deleteWishlistItem(id){
 function markWishlistBought(id){
   const item = DB.wishlist.find(x=>x.id===id);
   if(!item) return;
-  const isPaper = confirm(`هل اشتريتِ "${item.title}" كنسخة ورقية؟\n\nموافق = ورقية، تُضاف مباشرة لفهرس مكتبتك.\nإلغاء = مش ورقية (كيندل/PDF مثلًا)، تُحذف من القائمة بدون إضافتها للفهرس.`);
+  const isPaper = confirm(`هل اشتريتِ "${item.title}" كنسخة ورقية؟\n\nموافق = ورقية، تُضاف مباشرة لفهرس مكتبتك.\nإلغاء = ليست ورقية (كيندل/PDF مثلًا)، تُحذف من القائمة بدون إضافتها للفهرس.`);
   if(isPaper){
     DB.books.push({
       id: uid(), createdAt: Date.now(),
@@ -1307,20 +1294,20 @@ function markWishlistBought(id){
   render();
 }
 
-// ============ كتب أبي أعيدها ============
+// ============ كتب أرغب في إعادتها ============
 function viewRereadList(){
   const items = DB.books.filter(b=>b.wantsReread).sort((a,b)=>(a.title||'').localeCompare(b.title||'','ar'));
   return `
   <div class="page-head">
     <div class="eyebrow">إعادة القراءة</div>
-    <h1>كتب أبي أعيدها</h1>
-    <p>الكتب اللي حطيتِ عليها علامة "أبي أعيد قراءتها" من صفحة الكتاب. تقدرين تطلبين اقتراحًا منها مباشرة.</p>
+    <h1>كتب أرغب في إعادتها</h1>
+    <p>الكتب التي وضعتِ عليها علامة "أرغب في إعادة قراءتها" من صفحة الكتاب. يمكنكِ طلب اقتراح منها مباشرة.</p>
   </div>
   <div style="margin-bottom:16px">
     <button class="btn primary" onclick="openSuggestionWizard('reread')">${ICONS.review} اقترحي لي من هذه القائمة</button>
   </div>
   <div class="card">
-    ${items.length===0 ? `<p style="color:var(--ink-faint);font-size:13px">لم تُحدَّد أي كتب لإعادة القراءة بعد. افتحي أي كتاب وفعّلي "أبي أعيد قراءته".</p>` : items.map(b=>`
+    ${items.length===0 ? `<p style="color:var(--ink-faint);font-size:13px">لم تُحدَّد أي كتب لإعادة القراءة بعد. افتحي أي كتاب وفعّلي خيار "أرغب في إعادة قراءته".</p>` : items.map(b=>`
       <div class="list-item">
         <div style="flex:1;cursor:pointer" onclick="navigate('book','${b.id}')">
           <div class="li-title">${escapeHtml(b.title)}</div>
@@ -1357,14 +1344,14 @@ function openAutoCategorizeReview(){
   if(candidates.length===0){
     openModal(`
       <div class="modal-head"><h2>تصنيف تلقائي</h2><button class="modal-close" onclick="closeModal()">×</button></div>
-      <p>كل كتبك مصنّفة بالفعل، أو ما فيه اقتراحات كافية لبقية الكتب.</p>
+      <p>كل كتبك مصنّفة بالفعل، أو لا توجد اقتراحات كافية لبقية الكتب.</p>
     `);
     return;
   }
   openModal(`
     <div class="modal-head"><h2>تصنيف تلقائي — راجعي قبل الحفظ</h2><button class="modal-close" onclick="closeModal()">×</button></div>
     <p style="color:var(--ink-faint);font-size:12.5px;margin-bottom:12px">
-      هذي اقتراحات مبنية على قواعد بسيطة (نفس المؤلف، كلمات بالعنوان، أو نوع الكتاب) — مو ذكاءً اصطناعيًا حقيقيًا. عدّلي أي قيمة أو ألغي أي كتاب قبل الحفظ.
+      هذه اقتراحات مبنية على قواعد بسيطة (نفس المؤلف، كلمات في العنوان، أو نوع الكتاب) — وليست ذكاءً اصطناعيًا حقيقيًا. عدّلي أي قيمة أو ألغي أي كتاب قبل الحفظ.
     </p>
     ${candidates.map(({book,suggestion})=>`
       <div class="field-row" style="align-items:flex-end">
@@ -1544,14 +1531,43 @@ function viewBook(bookId){
         ${bookRatingStars(b)}
         ${activeLentLoan(b.id)?`<span class="badge soil">معار لـ ${escapeHtml(activeLentLoan(b.id).person)}</span>`:''}
       </div>
+      ${b.status==='أقرأ الآن'? bookProgressWidget(b) : ''}
       <div style="margin-top:12px"><button class="btn sm" onclick="openBookForm('${b.id}')">${ICONS.edit} تعديل بيانات الكتاب</button></div>
     </div>
   </div>
+  ${relatedBooksCard(b)}
   <div class="tabs">${tabs.map(t=>`<div class="tab ${currentBookTab===t.id?'active':''}" onclick="setBookTab('${b.id}','${t.id}')">${t.label}</div>`).join('')}</div>
   <div id="book-tab-content">${renderBookTab(b)}</div>
   `;
 }
 function setBookTab(bookId, tab){ currentBookTab = tab; document.getElementById('book-tab-content').innerHTML = renderBookTab(getBook(bookId)); document.querySelectorAll('.tab').forEach(el=>el.classList.remove('active')); event.target.classList.add('active'); }
+
+function bookProgressWidget(b){
+  const pages = Number(b.pages)||0;
+  const cur = Math.min(Number(b.currentPage)||0, pages||Infinity);
+  const pct = pages>0 ? Math.max(0,Math.min(100,Math.round((cur/pages)*100))) : 0;
+  if(pages===0){
+    return `<p style="color:var(--ink-faint);font-size:12.5px;margin-top:8px">أضيفي عدد صفحات الكتاب من "تعديل بيانات الكتاب" لتتبّعي تقدّمك فيه.</p>`;
+  }
+  return `<div style="margin-top:10px;max-width:320px">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12.5px;color:var(--ink-faint);margin-bottom:4px">
+      <span>تقدّمك في القراءة</span>
+      <span><input type="number" min="0" max="${pages}" value="${cur}" style="width:60px;padding:3px 6px;border:1px solid var(--border);border-radius:6px" onchange="updateCurrentPage('${b.id}', this.value)"> من ${pages} (${pct}%)</span>
+    </div>
+    <div style="height:7px;background:var(--surface-2);border-radius:6px;overflow:hidden"><div style="height:100%;width:${pct}%;background:var(--gold);border-radius:6px"></div></div>
+  </div>`;
+}
+
+function relatedBooksCard(b){
+  const sameAuthor = b.author ? DB.books.filter(x=>x.id!==b.id && x.owned && x.author && x.author.trim()===b.author.trim()) : [];
+  const sameCategory = b.category ? DB.books.filter(x=>x.id!==b.id && x.owned && x.category===b.category && !sameAuthor.some(s=>s.id===x.id)) : [];
+  if(sameAuthor.length===0 && sameCategory.length===0) return '';
+  return `<div class="card" style="margin-top:14px">
+    <h3 style="margin-bottom:10px">كتب مرتبطة في مكتبتك</h3>
+    ${sameAuthor.length? `<p style="font-size:12.5px;color:var(--ink-faint);margin-bottom:6px">لنفس المؤلف — ${escapeHtml(b.author)}</p>${sameAuthor.map(x=>`<div class="list-item" onclick="navigate('book','${x.id}')" style="cursor:pointer"><span class="li-title">${escapeHtml(x.title)}</span><span class="li-sub">${x.status||''}</span></div>`).join('')}` : ''}
+    ${sameCategory.length? `<p style="font-size:12.5px;color:var(--ink-faint);margin:${sameAuthor.length?'12px':'0'} 0 6px">من نفس التصنيف — ${escapeHtml(b.category)}</p>${sameCategory.map(x=>`<div class="list-item" onclick="navigate('book','${x.id}')" style="cursor:pointer"><span class="li-title">${escapeHtml(x.title)}</span><span class="li-sub">${escapeHtml(x.author||'')}</span></div>`).join('')}` : ''}
+  </div>`;
+}
 
 function renderBookTab(b){
   switch(currentBookTab){
@@ -1688,15 +1704,9 @@ function bookTabVocab(b){
 
 function bookTabLinks(b){
   b.links = b.links || {ideas:[],books:[],authors:[],people:[],projects:[]};
-  const ideaOptions = DB.ideas.map(i=>`<option value="${i.id}">${escapeHtml(i.name)}</option>`).join('');
   const bookOptions = DB.books.filter(x=>x.id!==b.id).map(x=>`<option value="${x.id}">${escapeHtml(x.title)}</option>`).join('');
   const projectOptions = DB.projects.map(p=>`<option value="${p.id}">${escapeHtml(p.name)}</option>`).join('');
   return `<div class="grid cols-2">
-    <div class="card">
-      <h3>مرتبط بأفكار</h3>
-      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">${b.links.ideas.map(iid=>{const i=getIdea(iid); return i?`<span class="badge" style="cursor:pointer" onclick="navigate('idea','${iid}')">${escapeHtml(i.name)} <span onclick="event.stopPropagation();unlinkItem('${b.id}','ideas','${iid}')" style="margin-inline-start:4px">×</span></span>`:'';}).join('')}</div>
-      <select onchange="linkItem('${b.id}','ideas',this.value); this.value=''"><option value="">+ ربط فكرة...</option>${ideaOptions}</select>
-    </div>
     <div class="card">
       <h3>مرتبط بكتب أخرى</h3>
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">${b.links.books.map(bid=>{const bk=getBook(bid); return bk?`<span class="badge" style="cursor:pointer" onclick="navigate('book','${bid}')">${escapeHtml(bk.title)} <span onclick="event.stopPropagation();unlinkItem('${b.id}','books','${bid}')" style="margin-inline-start:4px">×</span></span>`:'';}).join('')}</div>
@@ -1764,71 +1774,6 @@ function toggleIdentityContrib(bookId, traitId){
   if(idx>-1) arr.splice(idx,1); else arr.push(traitId);
   saveDB();
   document.getElementById('book-tab-content').innerHTML = renderBookTab(getBook(bookId));
-}
-
-// ============ قاعدة المعرفة (الأفكار) ============
-function viewIdeas(){
-  return `
-  <div class="page-head">
-    <div class="eyebrow">قاعدة المعرفة</div>
-    <h1>الأفكار</h1>
-    <p>كل فكرة مهمة دخلت حياتك عبر القراءة، وما يربطها من كتب.</p>
-  </div>
-  <div style="margin-bottom:16px"><button class="btn primary" onclick="openIdeaForm()">${ICONS.plus} فكرة جديدة</button></div>
-  ${DB.ideas.length===0? `<div class="empty"><h3>لا توجد أفكار محفوظة بعد</h3><p>كل فكرة قوية قرأتِها تستحق مكانًا هنا.</p></div>` :
-  `<div class="grid cols-3">${DB.ideas.map(i=>{
-    const linkedBooks = DB.books.filter(b=>(b.links?.ideas||[]).includes(i.id));
-    return `<div class="card" style="cursor:pointer" onclick="navigate('idea','${i.id}')">
-      <h3>${escapeHtml(i.name)}</h3>
-      <p style="font-size:12.5px;color:var(--ink-faint)">${linkedBooks.length} كتاب مرتبط</p>
-    </div>`;
-  }).join('')}</div>`}
-  `;
-}
-function openIdeaForm(ideaId){
-  const i = ideaId ? getIdea(ideaId) : null;
-  openModal(`
-    <div class="modal-head"><h2>${i?'تعديل الفكرة':'فكرة جديدة'}</h2><button class="modal-close" onclick="closeModal()">×</button></div>
-    <div class="field"><label>اسم الفكرة *</label><input id="if-name" value="${escapeHtml(i?.name||'')}"></div>
-    <div class="field"><label>ملاحظات</label><textarea id="if-notes">${escapeHtml(i?.notes||'')}</textarea></div>
-    <div class="modal-actions">
-      ${i?`<button class="btn danger" onclick="deleteIdea('${i.id}')">${ICONS.trash} حذف</button>`:''}
-      <button class="btn" onclick="closeModal()">إلغاء</button>
-      <button class="btn primary" onclick="saveIdeaForm('${i?.id||''}')">حفظ</button>
-    </div>
-  `);
-}
-function saveIdeaForm(id){
-  const name = document.getElementById('if-name').value.trim();
-  if(!name){ alert('اسم الفكرة مطلوب.'); return; }
-  const notes = document.getElementById('if-notes').value.trim();
-  if(id){ const i=getIdea(id); i.name=name; i.notes=notes; }
-  else{ DB.ideas.push({id:uid(), name, notes, createdAt:Date.now()}); }
-  saveDB(); closeModal(); render();
-}
-function deleteIdea(id){
-  if(!confirm('حذف هذه الفكرة؟ ستُزال روابطها من الكتب.')) return;
-  DB.ideas = DB.ideas.filter(i=>i.id!==id);
-  DB.books.forEach(b=>{ if(b.links) b.links.ideas = b.links.ideas.filter(x=>x!==id); });
-  DB.quotes.forEach(q=>{ if(q.ideaId===id) q.ideaId=''; });
-  saveDB(); closeModal(); navigate('ideas');
-}
-function viewIdea(ideaId){
-  const i = getIdea(ideaId);
-  if(!i) return `<div class="empty"><h3>لم يُعثر على الفكرة</h3></div>`;
-  const linkedBooks = DB.books.filter(b=>(b.links?.ideas||[]).includes(i.id));
-  const linkedQuotes = DB.quotes.filter(q=>q.ideaId===i.id);
-  return `
-  <button class="btn ghost sm" onclick="navigate('ideas')" style="margin-bottom:10px">${ICONS.back} قاعدة المعرفة</button>
-  <div class="page-head" style="display:flex;justify-content:space-between;align-items:flex-start">
-    <div><div class="eyebrow">فكرة</div><h1>${escapeHtml(i.name)}</h1></div>
-    <button class="btn sm" onclick="openIdeaForm('${i.id}')">${ICONS.edit} تعديل</button>
-  </div>
-  ${i.notes? `<div class="card" style="margin-bottom:16px"><p>${escapeHtml(i.notes)}</p></div>`:''}
-  <h3 style="margin-bottom:10px">الكتب المرتبطة (${linkedBooks.length})</h3>
-  ${linkedBooks.length? linkedBooks.map(b=>`<div class="list-item" onclick="navigate('book','${b.id}')" style="cursor:pointer"><span class="li-title">${escapeHtml(b.title)}</span><span class="li-sub">${escapeHtml(b.author||'')}</span></div>`).join('') : `<p style="color:var(--ink-faint);font-size:13px">لا توجد كتب مرتبطة بهذه الفكرة بعد. اربطيها من تبويب "الروابط" داخل صفحة أي كتاب.</p>`}
-  ${linkedQuotes.length? `<h3 style="margin:18px 0 10px">اقتباسات مرتبطة</h3>${linkedQuotes.map(q=>quoteCardHtml(q)).join('')}`:''}
-  `;
 }
 
 // ============ المشاريع ============
@@ -1968,11 +1913,10 @@ function viewTrait(traitId){
 // ============ الاقتباسات ============
 function quoteCardHtml(q, showBookLink){
   const book = getBook(q.bookId);
-  const idea = q.ideaId ? getIdea(q.ideaId) : null;
   return `<div class="quote-card">
     <div class="q-text">"${escapeHtml(q.text)}"</div>
     <div class="q-meta">
-      <span>${book?('— '+escapeHtml(book.title)):''} ${q.author?(' · '+escapeHtml(q.author)):''} ${idea?(' · '+escapeHtml(idea.name)):''}</span>
+      <span>${book?('— '+escapeHtml(book.title)):''} ${q.author?(' · '+escapeHtml(q.author)):''}</span>
       <span style="display:flex;gap:8px;align-items:center">
         <span style="cursor:pointer" onclick="toggleQuoteFavorite('${q.id}')">${q.favorite?ICONS.star:ICONS.starOutline}</span>
         <span style="cursor:pointer" onclick="openQuoteForm('${q.id}')">${ICONS.edit}</span>
@@ -1999,15 +1943,11 @@ function viewQuotes(){
 function openQuoteForm(quoteId, presetBookId){
   const q = quoteId ? DB.quotes.find(x=>x.id===quoteId) : null;
   const bookOptions = `<option value="">بدون ربط بكتاب</option>` + DB.books.map(b=>`<option value="${b.id}" ${(q?.bookId===b.id || presetBookId===b.id)?'selected':''}>${escapeHtml(b.title)}</option>`).join('');
-  const ideaOptions = `<option value="">بدون ربط بفكرة</option>` + DB.ideas.map(i=>`<option value="${i.id}" ${q?.ideaId===i.id?'selected':''}>${escapeHtml(i.name)}</option>`).join('');
   openModal(`
     <div class="modal-head"><h2>${q?'تعديل الاقتباس':'اقتباس جديد'}</h2><button class="modal-close" onclick="closeModal()">×</button></div>
     <div class="field"><label>نص الاقتباس *</label><textarea id="qf-text" style="min-height:100px">${escapeHtml(q?.text||'')}</textarea></div>
     <div class="field"><label>المؤلف</label><input id="qf-author" value="${escapeHtml(q?.author||'')}"></div>
-    <div class="field-row">
-      <div class="field"><label>الكتاب</label><select id="qf-book">${bookOptions}</select></div>
-      <div class="field"><label>الفكرة</label><select id="qf-idea">${ideaOptions}</select></div>
-    </div>
+    <div class="field"><label>الكتاب</label><select id="qf-book">${bookOptions}</select></div>
     <div class="field"><label>وسوم (افصلي بينها بفاصلة)</label><input id="qf-tags" value="${(q?.tags||[]).join('، ')}"></div>
     <div class="modal-actions">
       ${q?`<button class="btn danger" onclick="deleteQuote('${q.id}')">${ICONS.trash} حذف</button>`:''}
@@ -2023,7 +1963,6 @@ function saveQuoteForm(id){
     text,
     author: document.getElementById('qf-author').value.trim(),
     bookId: document.getElementById('qf-book').value,
-    ideaId: document.getElementById('qf-idea').value,
     tags: document.getElementById('qf-tags').value.split('،').map(t=>t.trim()).filter(Boolean),
   };
   if(id){ Object.assign(DB.quotes.find(q=>q.id===id), data); }
@@ -2143,11 +2082,6 @@ function viewReview(){
   let bestBook = null;
   finishedBooks.forEach(x=>{ if(!bestBook || (x.r.rating||0) > (bestBook.r.rating||0)) bestBook = x; });
 
-  const ideaCount = {};
-  finishedBooks.forEach(x=>{ (x.b.links?.ideas||[]).forEach(iid=>{ ideaCount[iid]=(ideaCount[iid]||0)+1; }); });
-  const bestIdeaEntry = Object.entries(ideaCount).sort((a,b)=>b[1]-a[1])[0];
-  const bestIdea = bestIdeaEntry ? getIdea(bestIdeaEntry[0]) : null;
-
   const yearQuotes = DB.quotes.filter(q=>{ const b=getBook(q.bookId); return b && finishedBooks.some(x=>x.b.id===b.id); });
   const bestQuote = yearQuotes.find(q=>q.favorite) || yearQuotes[0];
 
@@ -2174,11 +2108,8 @@ function viewReview(){
     <p>${finishedBooks.length? `قرأتِ ${finishedBooks.length} كتابًا هذا العام، بمجموع ${totalPages.toLocaleString('ar')} صفحة${bestAuthor?('، وكان أكثر من رافقكِ هو '+bestAuthor[0]):''}.` : 'لم تُسجَّل قراءات مكتملة لهذا العام بعد.'}</p>
   </div>
   ${finishedBooks.length===0? '' : `
-  <div class="grid cols-2">
+  <div class="grid cols-3">
     <div class="card"><h3>أفضل كتاب</h3>${bestBook? `<p style="font-family:var(--font-display);font-size:20px">${escapeHtml(bestBook.b.title)}</p><p style="color:var(--ink-faint);font-size:13px">${escapeHtml(bestBook.b.author||'')}</p>${bestBook.r.rating?starsHtml(bestBook.r.rating,false):''}`:'<p style="color:var(--ink-faint);font-size:13px">لا يوجد تقييم مسجل بعد.</p>'}</div>
-    <div class="card"><h3>أفضل فكرة</h3>${bestIdea? `<p style="font-family:var(--font-display);font-size:20px">${escapeHtml(bestIdea.name)}</p><p style="color:var(--ink-faint);font-size:13px">تكررت في ${bestIdeaEntry[1]} كتاب</p>`:'<p style="color:var(--ink-faint);font-size:13px">لا توجد أفكار مرتبطة بعد.</p>'}</div>
-  </div>
-  <div class="grid cols-2" style="margin-top:14px">
     <div class="card"><h3>أكثر مؤلف أثّر فيّ</h3>${bestAuthor? `<p style="font-family:var(--font-display);font-size:20px">${escapeHtml(bestAuthor[0])}</p><p style="color:var(--ink-faint);font-size:13px">${bestAuthor[1]} كتاب</p>`:'<p style="color:var(--ink-faint);font-size:13px">—</p>'}</div>
     <div class="card"><h3>أكثر مشروع أنجزتِه</h3>${bestProject? `<p style="font-family:var(--font-display);font-size:20px">${escapeHtml(bestProject.name)}</p>`:'<p style="color:var(--ink-faint);font-size:13px">لا يوجد مشروع مكتمل هذا العام بعد.</p>'}</div>
   </div>
@@ -2194,7 +2125,7 @@ function viewSearch(){
   <div class="page-head">
     <div class="eyebrow">البحث</div>
     <h1>البحث الشامل</h1>
-    <p>ابحثي في الكتب، المؤلفين، الاقتباسات، الأفكار، المفردات، والمشاريع من الأعلى، أو من هنا.</p>
+    <p>ابحثي في الكتب، المؤلفين، الاقتباسات، المفردات، والمشاريع من الأعلى، أو من هنا.</p>
   </div>
   <input class="search-input" style="max-width:100%" placeholder="اكتبي كلمة للبحث..." oninput="renderInlineSearch(this.value)">
   <div id="inline-search-results" style="margin-top:16px"></div>
@@ -2204,21 +2135,19 @@ function searchAll(term){
   term = term.trim().toLowerCase();
   if(!term) return null;
   const books = DB.books.filter(b=>(b.title||'').toLowerCase().includes(term) || (b.author||'').toLowerCase().includes(term));
-  const ideas = DB.ideas.filter(i=>(i.name||'').toLowerCase().includes(term));
   const quotes = DB.quotes.filter(q=>(q.text||'').toLowerCase().includes(term));
   const vocab = DB.vocab.filter(v=>(v.word||'').toLowerCase().includes(term) || (v.meaning||'').toLowerCase().includes(term));
   const projects = DB.projects.filter(p=>(p.name||'').toLowerCase().includes(term));
-  return {books,ideas,quotes,vocab,projects};
+  return {books,quotes,vocab,projects};
 }
 function renderInlineSearch(term){
   const box = document.getElementById('inline-search-results');
   const res = searchAll(term);
   if(!res){ box.innerHTML=''; return; }
-  const total = res.books.length+res.ideas.length+res.quotes.length+res.vocab.length+res.projects.length;
+  const total = res.books.length+res.quotes.length+res.vocab.length+res.projects.length;
   if(total===0){ box.innerHTML = `<p style="color:var(--ink-faint)">لا نتائج مطابقة لـ "${escapeHtml(term)}".</p>`; return; }
   let html='';
   if(res.books.length) html += `<h3>كتب</h3>` + res.books.map(b=>`<div class="list-item" onclick="navigate('book','${b.id}')" style="cursor:pointer"><span class="li-title">${escapeHtml(b.title)}</span><span class="li-sub">${escapeHtml(b.author||'')}</span></div>`).join('');
-  if(res.ideas.length) html += `<h3 style="margin-top:14px">أفكار</h3>` + res.ideas.map(i=>`<div class="list-item" onclick="navigate('idea','${i.id}')" style="cursor:pointer"><span class="li-title">${escapeHtml(i.name)}</span></div>`).join('');
   if(res.quotes.length) html += `<h3 style="margin-top:14px">اقتباسات</h3>` + res.quotes.map(q=>quoteCardHtml(q)).join('');
   if(res.vocab.length) html += `<h3 style="margin-top:14px">مفردات</h3>` + res.vocab.map(v=>`<div class="list-item"><span class="li-title">${escapeHtml(v.word)}</span><span class="li-sub">${escapeHtml(v.meaning||'')}</span></div>`).join('');
   if(res.projects.length) html += `<h3 style="margin-top:14px">مشاريع</h3>` + res.projects.map(p=>`<div class="list-item" onclick="navigate('project','${p.id}')" style="cursor:pointer"><span class="li-title">${escapeHtml(p.name)}</span></div>`).join('');
@@ -2229,11 +2158,10 @@ function onGlobalSearch(term){
   const box = document.getElementById('search-results-box');
   if(!term.trim()){ box.innerHTML=''; return; }
   const res = searchAll(term);
-  const total = res.books.length+res.ideas.length+res.quotes.length+res.vocab.length+res.projects.length;
+  const total = res.books.length+res.quotes.length+res.vocab.length+res.projects.length;
   if(total===0){ box.innerHTML = `<div class="search-results"><div class="sr-empty">لا نتائج مطابقة</div></div>`; return; }
   let html = `<div class="search-results">`;
   if(res.books.length){ html += `<div class="sr-group">كتب</div>` + res.books.slice(0,5).map(b=>`<div class="sr-item" onclick="navigate('book','${b.id}');document.getElementById('search-results-box').innerHTML=''" style="cursor:pointer">${escapeHtml(b.title)}</div>`).join(''); }
-  if(res.ideas.length){ html += `<div class="sr-group">أفكار</div>` + res.ideas.slice(0,5).map(i=>`<div class="sr-item" onclick="navigate('idea','${i.id}');document.getElementById('search-results-box').innerHTML=''" style="cursor:pointer">${escapeHtml(i.name)}</div>`).join(''); }
   if(res.quotes.length){ html += `<div class="sr-group">اقتباسات</div>` + res.quotes.slice(0,3).map(q=>`<div class="sr-item">${escapeHtml(q.text.slice(0,60))}...</div>`).join(''); }
   if(res.vocab.length){ html += `<div class="sr-group">مفردات</div>` + res.vocab.slice(0,5).map(v=>`<div class="sr-item">${escapeHtml(v.word)}</div>`).join(''); }
   if(res.projects.length){ html += `<div class="sr-group">مشاريع</div>` + res.projects.slice(0,5).map(p=>`<div class="sr-item" onclick="navigate('project','${p.id}');document.getElementById('search-results-box').innerHTML=''" style="cursor:pointer">${escapeHtml(p.name)}</div>`).join(''); }
