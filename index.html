@@ -380,6 +380,7 @@ const NAV = [
   {group:'القراءة', items:[
     {id:'library', label:'فهرس المكتبة', icon:'library'},
     {id:'wishlist', label:'كتب أوّد شراءها', icon:'wishlist'},
+    {id:'reread', label:'كتب أبي أعيدها', icon:'review'},
     {id:'log', label:'سجل القراءة', icon:'log'},
     {id:'loans', label:'الإعارة والاستعارة', icon:'loan'},
     {id:'calendar', label:'التقويم', icon:'calendar'},
@@ -398,6 +399,14 @@ const NAV = [
 const STATUS_OPTIONS = ['لم أبدأ بعد','أقرأ الآن','قرأته'];
 const MEDIUM_OPTIONS = ['ورقي','كيندل','PDF','مستعار'];
 const TYPE_OPTIONS = ['عام','رواية','تطوير ذات','ديني'];
+const CATEGORY_KEYWORDS = {
+  'تطوير ذات': ['عادات','إنتاجية','نجاح','تحفيز','تنمية','مهارات'],
+  'رواية': ['رواية','قصة','حكاية'],
+  'ديني': ['تفسير','فقه','حديث','عقيدة','تزكية','قرآن'],
+  'تاريخ': ['تاريخ','حضارة','دولة','خلافة'],
+  'فكر': ['فلسفة','فكر','نقد'],
+  'علم نفس': ['نفس','سلوك','عقل'],
+};
 const DEFAULT_TRAITS = ['قارئة','منضبطة','مرتبة','متحدثة بارعة','صاحبة حدود','مفكرة'];
 
 function uid(){ return 'id' + Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
@@ -407,7 +416,7 @@ function defaultDB(){
     books:[], readings:[], ideas:[], projects:[], quotes:[], vocab:[], loans:[], wishlist:[],
     identity: DEFAULT_TRAITS.map(name=>({id:uid(), name})),
     identityContrib: {}, // bookId -> [traitId]
-    settings: { dark:false }
+    settings: { dark:false, lastSuggestion:null }
   };
 }
 
@@ -428,6 +437,7 @@ async function loadDB(){
   if(!DB.identity) DB.identity = DEFAULT_TRAITS.map(name=>({id:uid(), name}));
   if(!DB.identityContrib) DB.identityContrib = {};
   if(!DB.settings) DB.settings = {dark:false};
+  if(DB.settings.lastSuggestion===undefined) DB.settings.lastSuggestion = null;
   if(!DB.loans) DB.loans = [];
   if(!DB.wishlist) DB.wishlist = [];
 }
@@ -505,6 +515,7 @@ function renderSidebar(){
       <button class="footer-btn" onclick="document.getElementById('import-input').click()">${ICONS.upload}<span>استيراد بيانات بستان (JSON)</span></button>
       <input type="file" id="import-input" accept="application/json" style="display:none" onchange="importData(event)">
       <button class="footer-btn" onclick="openExcelImport()">${ICONS.upload}<span>استيراد من إكسل / نديم</span></button>
+      <button class="footer-btn" onclick="openAutoCategorizeReview()">${ICONS.library}<span>تصنيف الكتب تلقائيًا</span></button>
       <input type="file" id="excel-import-input" accept=".xlsx,.xls,.csv" style="display:none" onchange="handleExcelFile(event)">
       ${FIREBASE_ENABLED?`<button class="footer-btn" onclick="resetPassword()"><span>إعادة تعيين كلمة المرور</span></button>`:''}
       ${FIREBASE_ENABLED?`<button class="footer-btn" onclick="logout()"><span>تسجيل الخروج${currentUser?(' — '+escapeHtml(currentUser.email)):''}</span></button>`:''}
@@ -591,6 +602,81 @@ function closeModal(){
   if(el) el.innerHTML='';
 }
 
+// ============ معالج الاقتراح الذكي ============
+let wizardState = {};
+function openSuggestionWizard(presetPool){
+  wizardState = { pool: presetPool || null, type: null, short: null };
+  if(presetPool) return wizardStepType();
+  openModal(`
+    <div class="modal-head"><h2>اقترحي لي كتاب</h2><button class="modal-close" onclick="closeModal()">×</button></div>
+    <p style="color:var(--ink-faint);font-size:13px;margin-bottom:14px">من وين نختار؟</p>
+    <div class="grid cols-2" style="gap:10px">
+      <button class="btn" style="padding:14px" onclick="wizardState.pool='new'; wizardStepType()">كتاب جديد ما قريتيه</button>
+      <button class="btn" style="padding:14px" onclick="wizardState.pool='reread'; wizardStepType()">من كتب أبي أعيدها</button>
+    </div>
+  `);
+}
+function wizardStepType(){
+  openModal(`
+    <div class="modal-head"><h2>اقترحي لي كتاب</h2><button class="modal-close" onclick="closeModal()">×</button></div>
+    <p style="color:var(--ink-faint);font-size:13px;margin-bottom:14px">وش يناسب مزاجك الحين؟</p>
+    <div class="grid cols-2" style="gap:10px">
+      <button class="btn" style="padding:14px" onclick="wizardState.type='تطوير ذات'; wizardStepLength()">علمي / تطوير ذات</button>
+      <button class="btn" style="padding:14px" onclick="wizardState.type='رواية'; wizardStepLength()">رواية / أدب</button>
+      <button class="btn" style="padding:14px" onclick="wizardState.type='ديني'; wizardStepLength()">ديني</button>
+      <button class="btn" style="padding:14px" onclick="wizardState.type=null; wizardStepLength()">فاجئيني — أي نوع</button>
+    </div>
+  `);
+}
+function wizardStepLength(){
+  openModal(`
+    <div class="modal-head"><h2>اقترحي لي كتاب</h2><button class="modal-close" onclick="closeModal()">×</button></div>
+    <p style="color:var(--ink-faint);font-size:13px;margin-bottom:14px">تحبين كتاب قصير ولا ما يهمك؟</p>
+    <div class="grid cols-2" style="gap:10px">
+      <button class="btn" style="padding:14px" onclick="wizardState.short=true; runSuggestion()">قصير (أقل من ٢٠٠ صفحة)</button>
+      <button class="btn" style="padding:14px" onclick="wizardState.short=false; runSuggestion()">ما يفرق</button>
+    </div>
+  `);
+}
+function runSuggestion(){
+  let pool = wizardState.pool==='reread'
+    ? DB.books.filter(b=>b.wantsReread)
+    : DB.books.filter(b=>b.owned && b.status!=='قرأته');
+  if(wizardState.type) pool = pool.filter(b=>b.type===wizardState.type);
+  if(wizardState.short) pool = pool.filter(b=>b.pages && Number(b.pages) < 200);
+
+  const last = DB.settings.lastSuggestion;
+  let candidates = pool;
+  if(last && pool.length>1) candidates = pool.filter(b=>b.id!==last.bookId);
+  if(candidates.length===0) candidates = pool;
+
+  if(candidates.length===0){
+    openModal(`
+      <div class="modal-head"><h2>ما فيه كتب مطابقة</h2><button class="modal-close" onclick="closeModal()">×</button></div>
+      <p>ما لقيت كتاب يطابق اختياراتك. جربي تخففين الشروط.</p>
+      <div class="modal-actions"><button class="btn primary" onclick="openSuggestionWizard(wizardState.pool)">إعادة المحاولة</button></div>
+    `);
+    return;
+  }
+  const pick = candidates[Math.floor(Math.random()*candidates.length)];
+  DB.settings.lastSuggestion = { bookId: pick.id, pool: wizardState.pool || 'new', ts: Date.now() };
+  saveDB();
+  showSuggestionResult(pick);
+}
+function showSuggestionResult(b){
+  openModal(`
+    <div class="modal-head"><h2>اقتراحي لك</h2><button class="modal-close" onclick="closeModal()">×</button></div>
+    <div class="card stat-card" style="margin-bottom:14px;text-align:right">
+      <div class="li-title" style="font-size:18px">${escapeHtml(b.title)}</div>
+      <div class="li-sub">${escapeHtml(b.author||'')}${b.category?(' · '+escapeHtml(b.category)):''}${b.pages?(' · '+b.pages+' صفحة'):''}</div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal(); openSuggestionWizard(wizardState.pool)">اقترحي غيره</button>
+      <button class="btn primary" onclick="closeModal(); navigate('book','${b.id}')">اذهبي لصفحة الكتاب</button>
+    </div>
+  `);
+}
+
 // ============ توزيع العروض ============
 function renderView(){
   switch(currentView){
@@ -599,6 +685,7 @@ function renderView(){
     case 'log': return viewLog();
     case 'loans': return viewLoans();
     case 'wishlist': return viewWishlist();
+    case 'reread': return viewRereadList();
     case 'book': return viewBook(currentParam);
     case 'ideas': return viewIdeas();
     case 'idea': return viewIdea(currentParam);
@@ -675,6 +762,14 @@ function viewDashboard(){
     <div class="card stat-card"><div class="stat-num">${totalOwned}</div><div class="stat-label">كتاب في المكتبة</div></div>
     <div class="card stat-card"><div class="stat-num">${totalPages.toLocaleString('ar')}</div><div class="stat-label">صفحة مقروءة</div></div>
     <div class="card stat-card"><div class="stat-num">${DB.ideas.length}</div><div class="stat-label">فكرة محفوظة</div></div>
+  </div>
+
+  <div class="card" style="margin-bottom:18px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+    <div>
+      <h3 style="margin-bottom:4px">مو عارفة وش تقرين؟</h3>
+      <p style="color:var(--ink-faint);font-size:13px;margin:0">خليني أقترح عليكِ كتابًا بناءً على مزاجك الحالي.</p>
+    </div>
+    <button class="btn primary" onclick="openSuggestionWizard()">${ICONS.review} اقترحي لي كتاب</button>
   </div>
 
   ${(finishedBookIdsArr.length>0) ? `<div class="card" style="margin-bottom:18px">
@@ -921,6 +1016,7 @@ function openBookForm(bookId){
       <div class="field"><label>حالة القراءة</label><select id="bf-status">${STATUS_OPTIONS.map(s=>`<option ${b?.status===s?'selected':''}>${s}</option>`).join('')}</select></div>
     </div>
     <div class="field checkbox-row" style="margin-top:4px"><input type="checkbox" id="bf-owned" ${(b?.owned!==false)?'checked':''}><label>هذا الكتاب موجود في مكتبتي فعليًا</label></div>
+    <div class="field checkbox-row"><input type="checkbox" id="bf-reread" ${b?.wantsReread?'checked':''}><label>أبي أعيد قراءة هذا الكتاب مستقبلًا</label></div>
     <details class="extra-details">
       <summary>معلومات إضافية</summary>
       <div class="field"><label>عدد الصفحات (اختياري)</label><input id="bf-pages" type="number" value="${b?.pages||''}"></div>
@@ -946,6 +1042,7 @@ function saveBookForm(id){
     type: document.getElementById('bf-type').value,
     status: document.getElementById('bf-status').value,
     owned: document.getElementById('bf-owned').checked,
+    wantsReread: document.getElementById('bf-reread').checked,
     shelf: document.getElementById('bf-shelf').value.trim(),
     notes: document.getElementById('bf-notes').value.trim(),
     tags: document.getElementById('bf-tags').value.split('،').map(t=>t.trim()).filter(Boolean),
@@ -1198,7 +1295,7 @@ function markWishlistBought(id){
     DB.books.push({
       id: uid(), createdAt: Date.now(),
       title: item.title, author:'', category:'', pages:'', type:'عام', status:'لم أبدأ بعد',
-      owned:true, shelf:'', notes:'', tags:[],
+      owned:true, wantsReread:false, shelf:'', notes:'', tags:[],
       goldenIdea:'', mainIdeas:[], summary:'', applyList:[], impact:'',
       links:{ideas:[],books:[],authors:[],people:[],projects:[]},
       novel:{characters:'',message:'',impression:'',styles:''},
@@ -1209,6 +1306,91 @@ function markWishlistBought(id){
   saveDB();
   render();
 }
+
+// ============ كتب أبي أعيدها ============
+function viewRereadList(){
+  const items = DB.books.filter(b=>b.wantsReread).sort((a,b)=>(a.title||'').localeCompare(b.title||'','ar'));
+  return `
+  <div class="page-head">
+    <div class="eyebrow">إعادة القراءة</div>
+    <h1>كتب أبي أعيدها</h1>
+    <p>الكتب اللي حطيتِ عليها علامة "أبي أعيد قراءتها" من صفحة الكتاب. تقدرين تطلبين اقتراحًا منها مباشرة.</p>
+  </div>
+  <div style="margin-bottom:16px">
+    <button class="btn primary" onclick="openSuggestionWizard('reread')">${ICONS.review} اقترحي لي من هذه القائمة</button>
+  </div>
+  <div class="card">
+    ${items.length===0 ? `<p style="color:var(--ink-faint);font-size:13px">لم تُحدَّد أي كتب لإعادة القراءة بعد. افتحي أي كتاب وفعّلي "أبي أعيد قراءته".</p>` : items.map(b=>`
+      <div class="list-item">
+        <div style="flex:1;cursor:pointer" onclick="navigate('book','${b.id}')">
+          <div class="li-title">${escapeHtml(b.title)}</div>
+          <div class="li-sub">${escapeHtml(b.author||'')}${b.category?(' · '+escapeHtml(b.category)):''}</div>
+        </div>
+        <button class="btn sm ghost" onclick="toggleWantsReread('${b.id}')" title="إزالة من قائمة الإعادة">${ICONS.trash}</button>
+      </div>`).join('')}
+  </div>
+  `;
+}
+function toggleWantsReread(id){
+  const b = getBook(id); if(!b) return;
+  b.wantsReread = !b.wantsReread;
+  saveDB();
+  render();
+}
+
+// ============ تصنيف تلقائي محلي (بدون AI حقيقي) ============
+function suggestCategoryFor(book){
+  if(book.category) return null;
+  const sameAuthor = DB.books.find(b=>b.id!==book.id && book.author && b.author===book.author && b.category);
+  if(sameAuthor) return sameAuthor.category;
+  const title = (book.title||'').toLowerCase();
+  for(const [cat, words] of Object.entries(CATEGORY_KEYWORDS)){
+    if(words.some(w=>title.includes(w))) return cat;
+  }
+  if(book.type) return book.type;
+  return null;
+}
+function openAutoCategorizeReview(){
+  const candidates = DB.books.filter(b=>b.owned && !b.category)
+    .map(b=>({book:b, suggestion: suggestCategoryFor(b)}))
+    .filter(x=>x.suggestion);
+  if(candidates.length===0){
+    openModal(`
+      <div class="modal-head"><h2>تصنيف تلقائي</h2><button class="modal-close" onclick="closeModal()">×</button></div>
+      <p>كل كتبك مصنّفة بالفعل، أو ما فيه اقتراحات كافية لبقية الكتب.</p>
+    `);
+    return;
+  }
+  openModal(`
+    <div class="modal-head"><h2>تصنيف تلقائي — راجعي قبل الحفظ</h2><button class="modal-close" onclick="closeModal()">×</button></div>
+    <p style="color:var(--ink-faint);font-size:12.5px;margin-bottom:12px">
+      هذي اقتراحات مبنية على قواعد بسيطة (نفس المؤلف، كلمات بالعنوان، أو نوع الكتاب) — مو ذكاءً اصطناعيًا حقيقيًا. عدّلي أي قيمة أو ألغي أي كتاب قبل الحفظ.
+    </p>
+    ${candidates.map(({book,suggestion})=>`
+      <div class="field-row" style="align-items:flex-end">
+        <div class="field" style="flex:0 0 auto;min-width:140px"><label style="font-weight:600">${escapeHtml(book.title)}</label></div>
+        <div class="field"><input id="ac-${book.id}" value="${escapeHtml(suggestion)}"></div>
+        <div class="field checkbox-row" style="flex:0 0 auto"><input type="checkbox" id="ac-skip-${book.id}"><label>تجاهل</label></div>
+      </div>
+    `).join('')}
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal()">إلغاء</button>
+      <button class="btn primary" onclick="applyAutoCategorize(['${candidates.map(c=>c.book.id).join("','")}'])">حفظ التصنيفات</button>
+    </div>
+  `);
+}
+function applyAutoCategorize(bookIds){
+  bookIds.forEach(id=>{
+    const skip = document.getElementById('ac-skip-'+id).checked;
+    if(skip) return;
+    const val = document.getElementById('ac-'+id).value.trim();
+    if(val){ getBook(id).category = val; }
+  });
+  saveDB();
+  closeModal();
+  render();
+}
+
 function starsHtml(rating, interactive, onClickPrefix){
   let html = `<div class="stars">`;
   for(let i=5;i>=1;i--){
