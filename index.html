@@ -415,7 +415,7 @@ function defaultDB(){
     books:[], readings:[], ideas:[], projects:[], quotes:[], vocab:[], loans:[], wishlist:[],
     identity: DEFAULT_TRAITS.map(name=>({id:uid(), name})),
     identityContrib: {}, // bookId -> [traitId]
-    settings: { dark:false, lastSuggestion:null }
+    settings: { dark:false, lastSuggestion:null, readingGoals:{} }
   };
 }
 
@@ -437,6 +437,7 @@ async function loadDB(){
   if(!DB.identityContrib) DB.identityContrib = {};
   if(!DB.settings) DB.settings = {dark:false};
   if(DB.settings.lastSuggestion===undefined) DB.settings.lastSuggestion = null;
+  if(!DB.settings.readingGoals) DB.settings.readingGoals = {};
   if(!DB.loans) DB.loans = [];
   if(!DB.wishlist) DB.wishlist = [];
 }
@@ -740,11 +741,34 @@ function viewDashboard(){
   const monthCount = Array(12).fill(0);
   finished.filter(r=>(r.endDate||'').slice(0,4)===curYear).forEach(r=>{ const m = Number((r.endDate||'').slice(5,7))-1; if(m>=0) monthCount[m]++; });
 
+  // هدف القراءة السنوي
+  const yearlyGoal = DB.settings.readingGoals[curYear] || 0;
+  const finishedThisYear = finished.filter(r=>(r.endDate||'').slice(0,4)===curYear).length;
+
   return `
   <div class="page-head">
     <div class="eyebrow">بستان</div>
     <h1>أهلًا بكِ في بستانك</h1>
     <p>هذه لمحة سريعة عمّا زرعتِه من كتب وأفكار حتى الآن.</p>
+  </div>
+
+  <div class="card" style="margin-bottom:18px">
+    ${yearlyGoal>0 ? `
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px">
+        <h3 style="margin:0">هدفكِ لعام ${curYear}: ${finishedThisYear} من ${yearlyGoal} كتاب</h3>
+        <button class="btn sm ghost" onclick="openYearlyGoalForm()">${ICONS.edit} تعديل الهدف</button>
+      </div>
+      <div style="height:9px;background:var(--surface-2);border-radius:6px;overflow:hidden"><div style="height:100%;width:${Math.min(100,Math.round(finishedThisYear/yearlyGoal*100))}%;background:var(--gold);border-radius:6px"></div></div>
+      ${finishedThisYear>=yearlyGoal? `<p style="color:var(--primary-dark);font-size:12.5px;margin-top:8px">حقّقتِ هدفكِ لهذا العام! 🎉</p>` : ''}
+    ` : `
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+        <div>
+          <h3 style="margin-bottom:4px">حدّدي هدف قراءة لعام ${curYear}</h3>
+          <p style="color:var(--ink-faint);font-size:13px;margin:0">كم كتابًا تودّين قراءته هذا العام؟</p>
+        </div>
+        <button class="btn primary" onclick="openYearlyGoalForm()">${ICONS.plus} تحديد الهدف</button>
+      </div>
+    `}
   </div>
 
   <div class="grid cols-4" style="margin-bottom:18px">
@@ -797,6 +821,32 @@ function viewDashboard(){
     </div>
   </div>
   `;
+}
+
+function openYearlyGoalForm(){
+  const curYear = String(new Date().getFullYear());
+  const current = DB.settings.readingGoals[curYear] || '';
+  openModal(`
+    <div class="modal-head"><h2>هدف القراءة لعام ${curYear}</h2><button class="modal-close" onclick="closeModal()">×</button></div>
+    <div class="field"><label>كم كتابًا تودّين قراءته هذا العام؟</label><input id="yg-target" type="number" min="1" value="${current}"></div>
+    <div class="modal-actions">
+      ${current? `<button class="btn danger" onclick="clearYearlyGoal()">حذف الهدف</button>`:''}
+      <button class="btn" onclick="closeModal()">إلغاء</button>
+      <button class="btn primary" onclick="saveYearlyGoal()">حفظ</button>
+    </div>
+  `);
+}
+function saveYearlyGoal(){
+  const curYear = String(new Date().getFullYear());
+  const val = Number(document.getElementById('yg-target').value);
+  if(!val || val<1){ alert('اكتبي رقمًا صحيحًا أكبر من صفر.'); return; }
+  DB.settings.readingGoals[curYear] = val;
+  saveDB(); closeModal(); render();
+}
+function clearYearlyGoal(){
+  const curYear = String(new Date().getFullYear());
+  delete DB.settings.readingGoals[curYear];
+  saveDB(); closeModal(); render();
 }
 
 function barRow(label,count,max){
